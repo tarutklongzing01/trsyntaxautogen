@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NightLoot Digital</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Kanit:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/main.css" />
+  </head>
+  <body class="store-body">
+    <div class="noise-layer" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="brand" href="#top">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-copy">
+          <strong id="brand-name">NightLoot Digital</strong>
+          <small>Digital Goods Marketplace</small>
+        </span>
+      </a>
+
+      <nav class="main-nav" aria-label="Main navigation">
+        <button type="button" class="nav-btn is-active" data-view="catalog">สินค้า</button>
+        <button type="button" class="nav-btn" data-view="wallet">เติมเงิน</button>
+        <button type="button" class="nav-btn" data-view="orders">ออเดอร์</button>
+        <button type="button" class="nav-btn" data-view="profile">โปรไฟล์</button>
+      </nav>
+
+      <div class="header-actions">
+        <a id="admin-link" class="ghost-btn hidden" href="/admin.html">Admin</a>
+        <div id="user-chip" class="user-chip hidden">
+          <img id="user-chip-avatar" src="" alt="" />
+          <div>
+            <strong id="user-chip-name">Guest</strong>
+            <small id="user-chip-balance">Balance 0 THB</small>
+          </div>
+        </div>
+        <button id="open-auth-btn" type="button" class="primary-btn">เข้าสู่ระบบ</button>
+        <button id="logout-btn" type="button" class="ghost-btn hidden">ออกจากระบบ</button>
+      </div>
+    </header>
+
+    <main class="page-shell" id="top">
+      <section class="hero card">
+        <div class="hero-copy">
+          <p class="eyebrow">READY TO SELL</p>
+          <h1 id="hero-title">โครงเว็บขายสินค้า Digital แนวเว็บขายไอดีเกม</h1>
+          <p id="hero-tagline" class="hero-text">
+            จัดการสินค้า เติมเงิน ตรวจสลิป และสั่งซื้อแบบหัก balance อัตโนมัติจาก Firestore ได้ในหน้าร้านเดียว
+          </p>
+
+          <div class="hero-actions">
+            <button id="hero-catalog-btn" type="button" class="primary-btn">ดูสินค้า</button>
+            <button id="hero-topup-btn" type="button" class="ghost-btn">ไปหน้าเติมเงิน</button>
+          </div>
+
+          <div class="metric-row">
+            <article class="metric-card">
+              <strong id="metric-product-count">0</strong>
+              <span>สินค้าออนไลน์</span>
+            </article>
+            <article class="metric-card">
+              <strong>3</strong>
+              <span>ช่องทางเติมเงิน</span>
+            </article>
+            <article class="metric-card">
+              <strong>Firebase</strong>
+              <span>Hosting + Auth + Firestore</span>
+            </article>
+          </div>
+        </div>
+
+        <div class="hero-art">
+          <div class="orbit orbit-large"></div>
+          <div class="orbit orbit-small"></div>
+          <div class="hero-screen">
+            <p class="eyebrow">GAME STORE UI</p>
+            <div class="hero-screen-grid">
+              <div class="hero-panel">
+                <span>Wallet</span>
+                <strong id="hero-balance">0 THB</strong>
+              </div>
+              <div class="hero-panel">
+                <span>Topup Queue</span>
+                <strong>Manual Review</strong>
+              </div>
+              <div class="hero-panel wide">
+                <span>ระบบเหมาะกับร้านเริ่มต้น</span>
+                <strong>Simple, Responsive, Admin Ready</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard-grid">
+        <aside class="sidebar-stack">
+          <article class="panel">
+            <div id="guest-callout" class="accent-block">
+              <p class="eyebrow">START HERE</p>
+              <h2>ล็อกอินเพื่อซื้อสินค้าและเติมเงิน</h2>
+              <p>
+                สมัครด้วยอีเมลหรือ Google แล้วระบบจะสร้างโปรไฟล์สมาชิกและกระเป๋าเงินให้อัตโนมัติ
+              </p>
+              <button id="guest-auth-btn" type="button" class="primary-btn">สมัครสมาชิก / Login</button>
+            </div>
+
+            <div id="member-summary" class="member-summary hidden">
+              <div class="member-head">
+                <img id="member-avatar" src="" alt="avatar" />
+                <div>
+                  <h2 id="member-name">Member</h2>
+                  <p id="member-email">member@example.com</p>
+                </div>
+              </div>
+              <div class="member-stats">
+                <div class="stat-chip">
+                  <span>Balance</span>
+                  <strong id="member-balance">0 THB</strong>
+                </div>
+                <div class="stat-chip">
+                  <span>Role</span>
+                  <strong id="member-role">customer</strong>
+                </div>
+              </div>
+              <div class="quick-actions">
+                <button type="button" class="ghost-btn" data-view-target="wallet">แจ้งเติมเงิน</button>
+                <button type="button" class="ghost-btn" data-view-target="orders">ดูออเดอร์</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="section-copy">
+              <p class="eyebrow">PAYMENT CHANNELS</p>
+              <h2>ข้อมูลบัญชีสำหรับรับโอน</h2>
+              <p>แก้ไขเลขบัญชี/พร้อมเพย์/TrueWallet ได้ในไฟล์ config ก่อน deploy จริง</p>
+            </div>
+            <div id="payment-methods" class="payment-grid"></div>
+          </article>
+
+          <article class="panel support-panel">
+            <p class="eyebrow">SUPPORT</p>
+            <h2>ช่องทางติดต่อ</h2>
+            <ul id="support-list" class="support-list"></ul>
+          </article>
+        </aside>
+
+        <section class="panel content-panel">
+          <div class="section-header">
+            <div>
+              <p id="view-eyebrow" class="eyebrow">CATALOG</p>
+              <h2 id="view-title">รายการสินค้าพร้อมขาย</h2>
+            </div>
+            <label id="search-shell" class="search-shell">
+              <span>ค้นหา</span>
+              <input id="product-search" type="search" placeholder="พิมพ์ชื่อสินค้า..." />
+            </label>
+          </div>
+
+          <section id="catalog-view" class="view is-active">
+            <div id="category-filters" class="category-row"></div>
+            <div id="product-grid" class="product-grid"></div>
+          </section>
+
+          <section id="wallet-view" class="view">
+            <div class="grid-2">
+              <article class="sub-panel">
+                <p class="eyebrow">WALLET</p>
+                <h3>กระเป๋าเงินและยอดคงเหลือ</h3>
+                <div class="wallet-highlight">
+                  <strong id="wallet-balance">0 THB</strong>
+                  <span>ยอดนี้จะถูกหักอัตโนมัติเมื่อกดซื้อสินค้า</span>
+                </div>
+                <p class="help-text">
+                  เวอร์ชันแรกใช้ระบบแจ้งเติมเงิน + อัปโหลดสลิป + แอดมินอนุมัติ จากนั้น balance จะเพิ่มในบัญชีสมาชิก
+                </p>
+              </article>
+
+              <article class="sub-panel">
+                <p class="eyebrow">TOPUP</p>
+                <h3>ส่งแจ้งเติมเงิน</h3>
+                <form id="topup-form" class="stack-form">
+                  <div class="field">
+                    <label for="topup-amount">จำนวนเงิน</label>
+                    <input id="topup-amount" type="number" min="50" placeholder="เช่น 300" required />
+                  </div>
+                  <div class="field">
+                    <label for="topup-method">ช่องทางชำระเงิน</label>
+                    <select id="topup-method" required></select>
+                  </div>
+                  <div class="field">
+                    <label for="topup-note">หมายเหตุ</label>
+                    <textarea id="topup-note" rows="3" placeholder="เช่น ต้องการรีบใช้ภายในคืนนี้"></textarea>
+                  </div>
+                  <div class="field">
+                    <label for="topup-slip">อัปโหลดสลิป</label>
+                    <input id="topup-slip" type="file" accept="image/*" required />
+                    <small class="help-text">รองรับไฟล์ภาพไม่เกิน 8MB</small>
+                  </div>
+                  <button type="submit" class="primary-btn full-width">ส่งแจ้งเติมเงิน</button>
+                </form>
+              </article>
+            </div>
+
+            <article class="sub-panel history-panel">
+              <div class="sub-panel-head">
+                <div>
+                  <p class="eyebrow">HISTORY</p>
+                  <h3>ประวัติการแจ้งเติมเงิน</h3>
+                </div>
+              </div>
+              <div id="topup-history" class="list-stack"></div>
+            </article>
+          </section>
+
+          <section id="orders-view" class="view">
+            <article class="sub-panel">
+              <div class="sub-panel-head">
+                <div>
+                  <p class="eyebrow">ORDERS</p>
+                  <h3>คำสั่งซื้อของฉัน</h3>
+                </div>
+              </div>
+              <div id="orders-list" class="list-stack"></div>
+            </article>
+          </section>
+
+          <section id="profile-view" class="view">
+            <article class="sub-panel">
+              <div class="sub-panel-head">
+                <div>
+                  <p class="eyebrow">PROFILE</p>
+                  <h3>ข้อมูลสมาชิก</h3>
+                </div>
+              </div>
+              <form id="profile-form" class="profile-grid">
+                <div class="field">
+                  <label for="profile-display-name">ชื่อที่แสดง</label>
+                  <input id="profile-display-name" type="text" placeholder="ชื่อหน้าร้าน / ชื่อลูกค้า" required />
+                </div>
+                <div class="field">
+                  <label for="profile-phone">เบอร์โทร</label>
+                  <input id="profile-phone" type="tel" placeholder="08x-xxx-xxxx" />
+                </div>
+                <div class="field">
+                  <label for="profile-line-id">LINE ID</label>
+                  <input id="profile-line-id" type="text" placeholder="@yourline" />
+                </div>
+                <div class="field">
+                  <label for="profile-discord-id">Discord</label>
+                  <input id="profile-discord-id" type="text" placeholder="username" />
+                </div>
+                <div class="field profile-wide">
+                  <label for="profile-avatar">รูปโปรไฟล์</label>
+                  <input id="profile-avatar" type="file" accept="image/*" />
+                  <small class="help-text">อัปโหลดใหม่ได้ ระบบจะบันทึกไว้ใน Firebase Storage</small>
+                </div>
+                <button type="submit" class="primary-btn profile-wide">บันทึกโปรไฟล์</button>
+              </form>
+            </article>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <div id="product-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="product-modal-title">
+      <div class="modal-backdrop" data-close-modal="product-modal"></div>
+      <div class="modal-panel product-modal-panel">
+        <button type="button" class="modal-close" data-close-modal="product-modal">ปิด</button>
+        <div class="modal-grid">
+          <div class="modal-visual">
+            <img id="product-modal-image" src="" alt="" />
+          </div>
+          <div class="modal-copy">
+            <p id="product-modal-badge" class="status-pill accent">HOT</p>
+            <h2 id="product-modal-title">Product</h2>
+            <p id="product-modal-description" class="modal-text"></p>
+            <div class="modal-meta">
+              <div>
+                <span>หมวดหมู่</span>
+                <strong id="product-modal-category">Gem</strong>
+              </div>
+              <div>
+                <span>ราคา</span>
+                <strong id="product-modal-price">0 THB</strong>
+              </div>
+              <div>
+                <span>คงเหลือ</span>
+                <strong id="product-modal-stock">0 ชิ้น</strong>
+              </div>
+            </div>
+            <button id="product-modal-buy" type="button" class="primary-btn full-width">ซื้อสินค้านี้</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="auth-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <div class="modal-backdrop" data-close-modal="auth-modal"></div>
+      <div class="modal-panel auth-modal-panel">
+        <button type="button" class="modal-close" data-close-modal="auth-modal">ปิด</button>
+        <div class="auth-shell">
+          <div class="auth-copy">
+            <p class="eyebrow">MEMBER ACCESS</p>
+            <h2 id="auth-title">เข้าสู่ระบบร้านค้า</h2>
+            <p>รองรับทั้ง Email/Password และ Google Sign-In พร้อมสร้างโปรไฟล์สมาชิกใน Firestore อัตโนมัติ</p>
+          </div>
+
+          <div class="auth-card">
+            <div class="auth-tabs">
+              <button type="button" class="tab-btn is-active" data-auth-tab="login">Login</button>
+              <button type="button" class="tab-btn" data-auth-tab="register">สมัครสมาชิก</button>
+            </div>
+
+            <div id="auth-login-panel" class="auth-panel is-active">
+              <form id="login-form" class="stack-form">
+                <div class="field">
+                  <label for="login-email">อีเมล</label>
+                  <input id="login-email" type="email" placeholder="you@example.com" required />
+                </div>
+                <div class="field">
+                  <label for="login-password">รหัสผ่าน</label>
+                  <input id="login-password" type="password" placeholder="อย่างน้อย 6 ตัวอักษร" required />
+                </div>
+                <button type="submit" class="primary-btn full-width">เข้าสู่ระบบ</button>
+              </form>
+            </div>
+
+            <div id="auth-register-panel" class="auth-panel">
+              <form id="register-form" class="stack-form">
+                <div class="field">
+                  <label for="register-name">ชื่อที่แสดง</label>
+                  <input id="register-name" type="text" placeholder="NightLoot User" required />
+                </div>
+                <div class="field">
+                  <label for="register-email">อีเมล</label>
+                  <input id="register-email" type="email" placeholder="you@example.com" required />
+                </div>
+                <div class="field">
+                  <label for="register-password">รหัสผ่าน</label>
+                  <input id="register-password" type="password" placeholder="อย่างน้อย 6 ตัวอักษร" required />
+                </div>
+                <div class="field">
+                  <label for="register-confirm-password">ยืนยันรหัสผ่าน</label>
+                  <input id="register-confirm-password" type="password" placeholder="พิมพ์อีกครั้ง" required />
+                </div>
+                <button type="submit" class="primary-btn full-width">สร้างบัญชี</button>
+              </form>
+            </div>
+
+            <div class="divider"><span>หรือ</span></div>
+            <button id="google-login-btn" type="button" class="google-btn">Login with Google</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <script type="module" src="/js/pages/storefront.js"></script>
+  </body>
+</html>
+

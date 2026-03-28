@@ -1,0 +1,13 @@
+{
+  "name": "nightloot-digital",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed": "node ./scripts/seed-mock-data.mjs",
+    "set-admin": "node ./scripts/set-admin.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0"
+  }
+}
+

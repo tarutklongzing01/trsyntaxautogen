@@ -1,0 +1,87 @@
+[
+  {
+    "id": "gem-rush-pack",
+    "name": "Gem Rush Pack",
+    "category": "Gem",
+    "shortDescription": "แพ็กเติม Gem พร้อมส่งยอดเร็ว เหมาะกับร้านเริ่มต้น",
+    "description": "แพ็ก Gem สำหรับลูกค้าที่ต้องการเติมเข้าระบบเกมหรือแอปอย่างรวดเร็ว พร้อมสต็อกพอสำหรับขายหน้าร้านต่อได้ทันที",
+    "price": 119,
+    "stock": 48,
+    "soldCount": 0,
+    "status": "active",
+    "badge": "HOT",
+    "imageUrl": "/assets/images/products/gem-rush.svg",
+    "deliveryType": "manual"
+  },
+  {
+    "id": "gpt-plus-30d",
+    "name": "GPT Plus 30 Days",
+    "category": "GPT",
+    "shortDescription": "บัญชีพร้อมใช้งาน 30 วัน เหมาะกับสายงานเอกสารและคอนเทนต์",
+    "description": "สินค้าแนวใช้งานจริงสำหรับลูกค้าที่ต้องการเริ่มใช้ GPT แบบไม่ต้องตั้งค่าเยอะ เหมาะกับเว็บขายไอดีและเครดิต AI",
+    "price": 349,
+    "stock": 18,
+    "soldCount": 0,
+    "status": "active",
+    "badge": "PREMIUM",
+    "imageUrl": "/assets/images/products/gpt-pass.svg",
+    "deliveryType": "manual"
+  },
+  {
+    "id": "claude-credit-50",
+    "name": "AI Credit Bundle 50",
+    "category": "AI Credits",
+    "shortDescription": "เครดิตพร้อมขายต่อหรือใช้งานทีมงานแบบยืดหยุ่น",
+    "description": "ชุดเครดิตสำหรับลูกค้าที่ต้องการใช้งานหลายบริการ AI ในแพ็กเดียว เหมาะกับกลุ่มผู้ใช้ที่ซื้อซ้ำบ่อยและต้องการยอดเติมที่คุมงบง่าย",
+    "price": 219,
+    "stock": 34,
+    "soldCount": 0,
+    "status": "active",
+    "badge": "VALUE",
+    "imageUrl": "/assets/images/products/ai-credit.svg",
+    "deliveryType": "manual"
+  },
+  {
+    "id": "elite-account-pro",
+    "name": "Elite Shared Account",
+    "category": "Account",
+    "shortDescription": "ไอดีพร้อมใช้งานแนวพรีเมียม สำหรับลูกค้าต้องการเข้าใช้ทันที",
+    "description": "เหมาะกับร้านขายไอดีที่ต้องการโชว์สินค้ากลุ่ม account ชัดเจน มีสต็อกจำกัดและสามารถปรับราคา/จำนวนจากหน้าแอดมินได้ทันที",
+    "price": 499,
+    "stock": 9,
+    "soldCount": 0,
+    "status": "active",
+    "badge": "LIMITED",
+    "imageUrl": "/assets/images/products/elite-account.svg",
+    "deliveryType": "manual"
+  },
+  {
+    "id": "valor-account-gold",
+    "name": "Valor Gold Account",
+    "category": "Account",
+    "shortDescription": "ไอดีเกมระดับกลางถึงสูง พร้อมขายแบบงาน manual delivery",
+    "description": "ตัวอย่างสินค้ากลุ่มไอดีเกมสำหรับร้านที่เน้นภาพลักษณ์เกมมิ่ง สามารถนำโครงนี้ไปเพิ่มรายละเอียดสินค้าเฉพาะเกมหรือแนบข้อมูลการส่งมอบภายหลังได้",
+    "price": 890,
+    "stock": 4,
+    "soldCount": 0,
+    "status": "active",
+    "badge": "RARE",
+    "imageUrl": "/assets/images/products/combo-pack.svg",
+    "deliveryType": "manual"
+  },
+  {
+    "id": "starter-voucher-box",
+    "name": "Starter Voucher Box",
+    "category": "Voucher",
+    "shortDescription": "แพ็กโปรโมชันสำหรับเปิดร้านใหม่ ใช้ตั้งหน้าหมวดหมู่เพิ่มได้ทันที",
+    "description": "ใช้เป็นสินค้าโปรโมชันหรือของแถมสำหรับหน้าแรก ช่วยให้เว็บดูเต็มและพร้อมสาธิตได้ตั้งแต่ครั้งแรกที่ deploy",
+    "price": 79,
+    "stock": 60,
+    "soldCount": 0,
+    "status": "active",
+    "badge": "NEW",
+    "imageUrl": "/assets/images/products/gem-rush.svg",
+    "deliveryType": "manual"
+  }
+]
+

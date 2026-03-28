@@ -1,0 +1,94 @@
+.admin-layout {
+  display: grid;
+  gap: 1.4rem;
+  padding: 1.5rem;
+}
+
+.admin-auth-panel,
+.admin-grid {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.admin-auth-panel {
+  grid-template-columns: 1.05fr 0.95fr;
+}
+
+.admin-login-card {
+  align-self: center;
+}
+
+.admin-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.admin-tabs {
+  flex-wrap: wrap;
+}
+
+.admin-view {
+  display: none;
+}
+
+.admin-grid {
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+}
+
+.admin-item {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.admin-item p {
+  margin: 0;
+}
+
+.admin-actions,
+.inline-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.inline-fields > * {
+  flex: 1 1 12rem;
+}
+
+.thumb-row {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: 1rem;
+  align-items: center;
+}
+
+.thumb-row img {
+  width: 7rem;
+  height: 4.5rem;
+  border-radius: 0.95rem;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.detail-grid .list-card {
+  height: 100%;
+}
+
+.admin-note {
+  min-height: 7rem;
+}
+
+@media (max-width: 980px) {
+  .admin-auth-panel,
+  .admin-grid,
+  .admin-metrics {
+    grid-template-columns: 1fr;
+  }
+}

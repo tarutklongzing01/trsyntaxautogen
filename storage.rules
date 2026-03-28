@@ -1,0 +1,48 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function userPath(uid) {
+      return /databases/(default)/documents/users/$(uid);
+    }
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && exists(userPath(request.auth.uid))
+        && get(userPath(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isImageUpload() {
+      return request.resource != null
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    function underSizeLimit(limitInMb) {
+      return request.resource.size < limitInMb * 1024 * 1024;
+    }
+
+    match /slips/{uid}/{allPaths=**} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow write: if (isOwner(uid) && isImageUpload() && underSizeLimit(8)) || isAdmin();
+    }
+
+    match /avatars/{uid}/{allPaths=**} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow write: if (isOwner(uid) && isImageUpload() && underSizeLimit(5)) || isAdmin();
+    }
+
+    match /products/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImageUpload() && underSizeLimit(5);
+    }
+  }
+}
+
