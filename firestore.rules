@@ -1,0 +1,293 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function userPath(uid) {
+      return /databases/$(database)/documents/users/$(uid);
+    }
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && exists(userPath(request.auth.uid))
+        && get(userPath(request.auth.uid)).data.role == 'admin';
+    }
+
+    function validCategory(category) {
+      return category in ['Gem', 'GPT', 'AI Credits', 'Account', 'Voucher'];
+    }
+
+    function validProductStatus(status) {
+      return status in ['active', 'draft', 'archived'];
+    }
+
+    function validDeliveryType(type) {
+      return type in ['manual', 'instant_url'];
+    }
+
+    function validOrderStatus(status) {
+      return status in ['paid', 'processing', 'completed', 'cancelled'];
+    }
+
+    function validTopupStatus(status) {
+      return status in ['pending', 'approved', 'rejected'];
+    }
+
+    function validPaymentMethod(method) {
+      return method in ['promptpay', 'bank', 'truewallet'];
+    }
+
+    function userCreateKeys() {
+      return [
+        'uid',
+        'email',
+        'displayName',
+        'photoURL',
+        'phone',
+        'lineId',
+        'discordId',
+        'role',
+        'balance',
+        'lastOrderId',
+        'createdAt',
+        'updatedAt',
+        'lastLoginAt'
+      ];
+    }
+
+    function orderKeys() {
+      return [
+        'uid',
+        'userEmail',
+        'productId',
+        'productName',
+        'category',
+        'imageUrl',
+        'deliveryType',
+        'deliveryValue',
+        'deliveryNote',
+        'price',
+        'quantity',
+        'totalAmount',
+        'status',
+        'createdAt',
+        'updatedAt'
+      ];
+    }
+
+    function topupKeys() {
+      return [
+        'uid',
+        'userEmail',
+        'amount',
+        'paymentMethod',
+        'channelLabel',
+        'status',
+        'slipPath',
+        'slipUrl',
+        'note',
+        'createdAt',
+        'reviewedAt',
+        'reviewedBy',
+        'adminNote'
+      ];
+    }
+
+    function productKeys() {
+      return [
+        'name',
+        'category',
+        'shortDescription',
+        'description',
+        'price',
+        'stock',
+        'soldCount',
+        'status',
+        'badge',
+        'imageUrl',
+        'deliveryType',
+        'deliveryValue',
+        'deliveryNote',
+        'createdAt',
+        'updatedAt'
+      ];
+    }
+
+    function validDeliveryFields(data) {
+      return validDeliveryType(data.deliveryType)
+        && data.deliveryValue is string
+        && data.deliveryNote is string
+        && (
+          (data.deliveryType == 'manual' && data.deliveryValue == '')
+          || (data.deliveryType == 'instant_url' && data.deliveryValue.size() > 0)
+        );
+    }
+
+    function isValidUserCreate(uid) {
+      return isOwner(uid)
+        && request.resource.data.keys().hasOnly(userCreateKeys())
+        && request.resource.data.uid == uid
+        && request.resource.data.role == 'customer'
+        && request.resource.data.balance == 0
+        && request.resource.data.lastOrderId == ''
+        && request.resource.data.email is string
+        && request.resource.data.displayName is string;
+    }
+
+    function isValidSelfProfileUpdate(uid) {
+      return isOwner(uid)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.balance == resource.data.balance
+        && request.resource.data.lastOrderId == resource.data.lastOrderId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+          'displayName',
+          'photoURL',
+          'phone',
+          'lineId',
+          'discordId',
+          'updatedAt',
+          'lastLoginAt'
+        ]);
+    }
+
+    function isValidPurchaseUserUpdate(uid) {
+      let orderId = request.resource.data.lastOrderId;
+      return isOwner(uid)
+        && orderId is string
+        && orderId.size() > 0
+        && existsAfter(/databases/$(database)/documents/orders/$(orderId))
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+          'balance',
+          'lastOrderId',
+          'updatedAt'
+        ])
+        && request.resource.data.balance >= 0
+        && request.resource.data.balance == resource.data.balance - getAfter(/databases/$(database)/documents/orders/$(orderId)).data.totalAmount
+        && getAfter(/databases/$(database)/documents/orders/$(orderId)).data.uid == uid
+        && getAfter(/databases/$(database)/documents/orders/$(orderId)).data.status in ['paid', 'completed'];
+    }
+
+    function isValidProductCreate() {
+      return request.resource.data.keys().hasOnly(productKeys())
+        && request.resource.data.name is string
+        && request.resource.data.shortDescription is string
+        && request.resource.data.description is string
+        && validCategory(request.resource.data.category)
+        && request.resource.data.price is number
+        && request.resource.data.price > 0
+        && request.resource.data.stock is int
+        && request.resource.data.stock >= 0
+        && request.resource.data.soldCount is int
+        && request.resource.data.soldCount >= 0
+        && validProductStatus(request.resource.data.status)
+        && validDeliveryFields(request.resource.data);
+    }
+
+    function isValidCustomerProductPurchase(productId) {
+      let userDoc = getAfter(userPath(request.auth.uid));
+      return signedIn()
+        && userDoc.data.lastOrderId is string
+        && userDoc.data.lastOrderId.size() > 0
+        && existsAfter(/databases/$(database)/documents/orders/$(userDoc.data.lastOrderId))
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+          'stock',
+          'soldCount',
+          'updatedAt'
+        ])
+        && resource.data.status == 'active'
+        && resource.data.stock > 0
+        && request.resource.data.stock == resource.data.stock - 1
+        && request.resource.data.soldCount == resource.data.soldCount + 1
+        && getAfter(/databases/$(database)/documents/orders/$(userDoc.data.lastOrderId)).data.productId == productId
+        && getAfter(/databases/$(database)/documents/orders/$(userDoc.data.lastOrderId)).data.uid == request.auth.uid;
+    }
+
+    function isValidOrderCreate(orderId) {
+      let userBefore = get(userPath(request.auth.uid));
+      let userAfter = getAfter(userPath(request.auth.uid));
+      let productBefore = get(/databases/$(database)/documents/products/$(request.resource.data.productId));
+      let productAfter = getAfter(/databases/$(database)/documents/products/$(request.resource.data.productId));
+      return signedIn()
+        && request.resource.data.keys().hasOnly(orderKeys())
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.userEmail == userBefore.data.email
+        && request.resource.data.productName == productBefore.data.name
+        && request.resource.data.category == productBefore.data.category
+        && request.resource.data.imageUrl == productBefore.data.imageUrl
+        && request.resource.data.deliveryType == productBefore.data.deliveryType
+        && request.resource.data.deliveryValue == (productBefore.data.deliveryValue is string ? productBefore.data.deliveryValue : '')
+        && request.resource.data.deliveryNote == (productBefore.data.deliveryNote is string ? productBefore.data.deliveryNote : '')
+        && request.resource.data.price == productBefore.data.price
+        && request.resource.data.quantity == 1
+        && request.resource.data.totalAmount == request.resource.data.price
+        && validOrderStatus(request.resource.data.status)
+        && (
+          (productBefore.data.deliveryType == 'manual' && request.resource.data.status == 'paid')
+          || (productBefore.data.deliveryType == 'instant_url' && request.resource.data.status == 'completed')
+        )
+        && productBefore.data.status == 'active'
+        && productBefore.data.stock > 0
+        && productAfter.data.stock == productBefore.data.stock - 1
+        && productAfter.data.soldCount == productBefore.data.soldCount + 1
+        && userAfter.data.balance == userBefore.data.balance - request.resource.data.totalAmount
+        && userAfter.data.lastOrderId == orderId
+        && userBefore.data.balance >= request.resource.data.totalAmount;
+    }
+
+    function isValidTopupCreate() {
+      return signedIn()
+        && request.resource.data.keys().hasOnly(topupKeys())
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.userEmail is string
+        && request.resource.data.amount is number
+        && request.resource.data.amount >= 50
+        && validPaymentMethod(request.resource.data.paymentMethod)
+        && request.resource.data.channelLabel is string
+        && request.resource.data.status == 'pending'
+        && request.resource.data.slipPath is string
+        && request.resource.data.slipPath.size() > 0
+        && request.resource.data.slipUrl is string
+        && request.resource.data.note is string;
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isValidUserCreate(uid);
+      allow update: if isAdmin() || isValidSelfProfileUpdate(uid) || isValidPurchaseUserUpdate(uid);
+      allow delete: if false;
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || isValidCustomerProductPurchase(productId);
+    }
+
+    match /orders/{orderId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create: if isAdmin() || isValidOrderCreate(orderId);
+      allow update, delete: if isAdmin();
+    }
+
+    match /topups/{topupId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create: if isValidTopupCreate();
+      allow update: if isAdmin() && validTopupStatus(request.resource.data.status);
+      allow delete: if false;
+    }
+  }
+}
