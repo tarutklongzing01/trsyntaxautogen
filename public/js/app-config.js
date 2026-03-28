@@ -3,29 +3,50 @@ export const APP_CONFIG = {
   tagline: 'ร้านค้า Digital พร้อมระบบครบจบ ที่นี่ที่เดียว',
   categories: ['ทั้งหมด', 'Gem', 'GPT', 'AI Credits', 'Account', 'Voucher'],
   orderStatuses: ['paid', 'processing', 'completed', 'cancelled'],
+
+  // กรอกข้อมูลจริงเฉพาะช่องที่ใช้งาน การ์ดช่องทางชำระเงินจะโชว์อัตโนมัติเมื่อมีชื่อและค่าที่คัดลอกได้
   paymentMethods: [
     {
       id: 'promptpay',
       label: 'PromptPay',
       accountName: '',
       accountValue: '',
-      description: 'ชำระผ่านพร้อมเพย์'
+      copyValue: '',
+      copyLabel: 'คัดลอกเลขพร้อมเพย์',
+      bankName: '',
+      description: 'ชำระผ่านพร้อมเพย์',
+      instructions: '',
+      qrImageUrl: '',
+      barcodeImageUrl: ''
     },
     {
       id: 'bank',
       label: 'Bank Transfer',
       accountName: '',
       accountValue: '',
-      description: 'ชำระผ่านบัญชีธนาคาร'
+      copyValue: '',
+      copyLabel: 'คัดลอกเลขบัญชี',
+      bankName: '',
+      description: 'ชำระผ่านบัญชีธนาคาร',
+      instructions: '',
+      qrImageUrl: '',
+      barcodeImageUrl: ''
     },
     {
       id: 'truewallet',
       label: 'TrueWallet',
       accountName: '',
       accountValue: '',
-      description: 'ชำระผ่าน TrueWallet'
+      copyValue: '',
+      copyLabel: 'คัดลอกเบอร์วอลเลต',
+      bankName: '',
+      description: 'ชำระผ่าน TrueWallet',
+      instructions: '',
+      qrImageUrl: '',
+      barcodeImageUrl: ''
     }
   ],
+
   supportChannels: [],
   topupLimits: {
     min: 50,

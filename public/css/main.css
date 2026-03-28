@@ -516,6 +516,7 @@ button {
 .payment-grid {
   display: grid;
   gap: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .payment-card,
@@ -538,6 +539,71 @@ button {
   display: block;
   margin: 0.35rem 0;
   font-family: var(--font-display);
+}
+
+.payment-copy-value {
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.payment-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.payment-card-meta span {
+  padding: 0.38rem 0.62rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.payment-media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.payment-media-tile {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.75rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.payment-media-tile img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  padding: 0.45rem;
+  border-radius: 0.9rem;
+  background: #ffffff;
+}
+
+.payment-media-tile span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.payment-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.15rem;
+}
+
+.payment-copy-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.payment-card-note {
+  margin: 0;
 }
 
 .support-list {

@@ -144,12 +144,73 @@ function setView(view) {
   toggleHidden(elements.searchShell, view !== 'catalog');
 }
 
-function isConfiguredPaymentMethod(method) {
-  const accountName = String(method?.accountName || '').trim();
-  const accountValue = String(method?.accountValue || '').trim();
-  const combined = `${accountName} ${accountValue}`.toLowerCase();
+function resolveAssetUrl(value) {
+  const source = String(value || '').trim();
+  if (!source) {
+    return '';
+  }
 
-  return Boolean(accountName && accountValue) && !combined.includes('your ') && !combined.includes('example');
+  try {
+    return new URL(source, window.location.href).href;
+  } catch (error) {
+    return source;
+  }
+}
+
+function getPaymentDisplayName(method) {
+  return String(method?.accountName || method?.bankName || method?.label || '').trim();
+}
+
+function getPaymentCopyValue(method) {
+  return String(method?.copyValue || method?.accountValue || '').trim();
+}
+
+function getPaymentDisplayValue(method) {
+  return String(method?.accountValue || getPaymentCopyValue(method)).trim();
+}
+
+function getPaymentChannelLabel(method) {
+  return [method?.label, method?.bankName].filter(Boolean).join(' - ');
+}
+
+function isConfiguredPaymentMethod(method) {
+  const displayName = getPaymentDisplayName(method);
+  const copyValue = getPaymentCopyValue(method);
+  const combined = `${method?.label || ''} ${displayName} ${copyValue} ${method?.bankName || ''}`.toLowerCase();
+
+  return Boolean(displayName && copyValue) && !combined.includes('your ') && !combined.includes('example');
+}
+
+function renderPaymentMedia(method) {
+  const mediaItems = [
+    {
+      label: 'QR / พร้อมเพย์',
+      url: resolveAssetUrl(method?.qrImageUrl)
+    },
+    {
+      label: 'Barcode / Payment Code',
+      url: resolveAssetUrl(method?.barcodeImageUrl)
+    }
+  ].filter((item) => item.url);
+
+  if (!mediaItems.length) {
+    return '';
+  }
+
+  return `
+    <div class="payment-media-grid">
+      ${mediaItems
+        .map(
+          (item) => `
+            <div class="payment-media-tile">
+              <img src="${escapeHTML(item.url)}" alt="${escapeHTML(item.label)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+              <span>${escapeHTML(item.label)}</span>
+            </div>
+          `
+        )
+        .join('')}
+    </div>
+  `;
 }
 
 function renderPaymentMethods() {
@@ -162,14 +223,41 @@ function renderPaymentMethods() {
 
   elements.paymentMethods.innerHTML = configuredMethods
     .map(
-      (method) => `
+      (method) => {
+        const displayName = getPaymentDisplayName(method);
+        const displayValue = getPaymentDisplayValue(method);
+        const copyValue = getPaymentCopyValue(method);
+        const copyLabel = method.copyLabel || 'คัดลอกข้อมูลชำระเงิน';
+        const metaItems = [method.bankName].filter(Boolean);
+
+        return `
         <article class="payment-card">
           <p class="eyebrow">${escapeHTML(method.label)}</p>
-          <h3>${escapeHTML(method.accountName)}</h3>
-          <strong>${escapeHTML(method.accountValue)}</strong>
-          <p>${escapeHTML(method.description)}</p>
+          <h3>${escapeHTML(displayName)}</h3>
+          ${
+            metaItems.length
+              ? `<div class="payment-card-meta">${metaItems
+                  .map((item) => `<span>${escapeHTML(item)}</span>`)
+                  .join('')}</div>`
+              : ''
+          }
+          <strong class="payment-copy-value">${escapeHTML(displayValue)}</strong>
+          ${method.description ? `<p>${escapeHTML(method.description)}</p>` : ''}
+          ${method.instructions ? `<p class="help-text payment-card-note">${escapeHTML(method.instructions)}</p>` : ''}
+          ${renderPaymentMedia(method)}
+          <div class="payment-card-actions">
+            <button
+              type="button"
+              class="ghost-btn payment-copy-btn"
+              data-copy-payment="${escapeHTML(copyValue)}"
+              data-copy-payment-label="${escapeHTML(copyLabel)}"
+            >
+              ${escapeHTML(copyLabel)}
+            </button>
+          </div>
         </article>
-      `
+      `;
+      }
     )
     .join('');
 
@@ -177,7 +265,9 @@ function renderPaymentMethods() {
     elements.topupMethod.innerHTML = configuredMethods
       .map(
         (method) =>
-          `<option value="${escapeHTML(method.id)}">${escapeHTML(method.label)} - ${escapeHTML(method.accountValue)}</option>`
+          `<option value="${escapeHTML(method.id)}">${escapeHTML(
+            `${getPaymentChannelLabel(method)} - ${getPaymentDisplayValue(method)}`
+          )}</option>`
       )
       .join('');
     elements.topupMethod.disabled = false;
@@ -575,6 +665,10 @@ async function copyDeliveryValue(orderId) {
   await copyTextValue(order?.deliveryValue, 'Copied delivery URL', 'No delivery URL found for this order');
 }
 
+async function copyPaymentValue(value, copyLabel) {
+  await copyTextValue(value, `${copyLabel || 'คัดลอกข้อมูลชำระเงิน'}แล้ว`, 'ไม่พบข้อมูลสำหรับคัดลอก');
+}
+
 function renderOrders() {
   elements.ordersList.innerHTML = !isLoggedIn()
     ? emptyState('เข้าสู่ระบบก่อนเพื่อดูออเดอร์')
@@ -803,7 +897,7 @@ async function submitTopup(event) {
       userEmail: state.profile.email || state.authUser.email || '',
       amount,
       paymentMethod,
-      channelLabel: selectedMethod?.label || paymentMethod,
+      channelLabel: getPaymentChannelLabel(selectedMethod) || paymentMethod,
       slipPath: uploadResult.path,
       slipUrl: uploadResult.url,
       note
@@ -933,6 +1027,14 @@ function bindEvents() {
   elements.googleLoginBtn.addEventListener('click', loginByGoogle);
   elements.heroCatalogBtn.addEventListener('click', () => setView('catalog'));
   elements.heroTopupBtn.addEventListener('click', () => setView('wallet'));
+  elements.paymentMethods.addEventListener('click', (event) => {
+    const copyButton = event.target.closest('[data-copy-payment]');
+    if (!copyButton) {
+      return;
+    }
+
+    copyPaymentValue(copyButton.dataset.copyPayment, copyButton.dataset.copyPaymentLabel);
+  });
 
   elements.navButtons.forEach((button) =>
     button.addEventListener('click', () => {
