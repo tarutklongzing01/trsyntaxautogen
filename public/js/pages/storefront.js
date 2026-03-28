@@ -211,6 +211,37 @@ function trimText(value = '', maxLength = 120) {
   return normalized.length > maxLength ? `${normalized.slice(0, maxLength).trim()}...` : normalized;
 }
 
+function resolveImageUrl(value) {
+  const fallback = APP_CONFIG.defaultProductImage;
+  const source = String(value || fallback).trim() || fallback;
+
+  try {
+    return new URL(source, window.location.href).href;
+  } catch (error) {
+    return new URL(fallback, window.location.href).href;
+  }
+}
+
+function attachFallbackImage(img) {
+  if (!img || img.dataset.fallbackBound === 'true') {
+    return;
+  }
+
+  img.dataset.fallbackBound = 'true';
+  img.addEventListener('error', () => {
+    const fallbackSrc = resolveImageUrl(APP_CONFIG.defaultProductImage);
+    if (img.src !== fallbackSrc) {
+      img.src = fallbackSrc;
+    }
+  });
+}
+
+function attachFallbackImages(scope) {
+  $$('img[data-product-image]', scope).forEach((img) => {
+    attachFallbackImage(img);
+  });
+}
+
 function resolveComparePrice(product) {
   const price = toSafeNumber(product.price);
   const explicitComparePrice = toSafeNumber(
@@ -327,6 +358,7 @@ function productCardTemplate(product) {
   const pricing = getProductPricing(product);
   const detailText = trimText(product.description || product.shortDescription, 110);
   const purchaseState = getPurchaseState(product);
+  const imageUrl = resolveImageUrl(product.imageUrl);
   const highlights = getProductHighlights(product)
     .map((item) => `<li>${escapeHTML(item)}</li>`)
     .join('');
@@ -334,7 +366,14 @@ function productCardTemplate(product) {
   return `
     <article class="product-card">
       <div class="product-media">
-        <img src="${escapeHTML(product.imageUrl || APP_CONFIG.defaultProductImage)}" alt="${escapeHTML(product.name)}" />
+        <img
+          src="${escapeHTML(imageUrl)}"
+          alt="${escapeHTML(product.name)}"
+          loading="lazy"
+          decoding="async"
+          referrerpolicy="no-referrer"
+          data-product-image="true"
+        />
         <div class="product-media-badges">
           <span class="status-pill accent">${escapeHTML(product.badge || product.category)}</span>
           <span class="product-discount-pill">-${pricing.discountPercent}%</span>
@@ -385,6 +424,8 @@ function renderProducts() {
   elements.productGrid.innerHTML = filteredProducts.length
     ? filteredProducts.map(productCardTemplate).join('')
     : emptyState('ยังไม่พบสินค้าที่ตรงกับตัวกรองนี้');
+
+  attachFallbackImages(elements.productGrid);
 }
 
 function renderAuthState() {
@@ -555,8 +596,11 @@ function renderProductModal() {
 
   const product = state.selectedProduct;
   const purchaseState = getPurchaseState(product);
-  elements.productModalImage.src = product.imageUrl || APP_CONFIG.defaultProductImage;
+  elements.productModalImage.src = resolveImageUrl(product.imageUrl);
   elements.productModalImage.alt = product.name;
+  elements.productModalImage.setAttribute('referrerpolicy', 'no-referrer');
+  elements.productModalImage.dataset.productImage = 'true';
+  attachFallbackImage(elements.productModalImage);
   elements.productModalBadge.textContent = product.badge || product.category;
   elements.productModalTitle.textContent = product.name;
   elements.productModalDescription.textContent = [product.shortDescription, product.description]

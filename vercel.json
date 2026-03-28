@@ -2,26 +2,31 @@
   "outputDirectory": "public",
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/admin.html",
+      "destination": "/admin",
+      "permanent": true
+    },
+    {
+      "source": "/404.html",
+      "destination": "/404",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/",
       "destination": "/index.html"
     },
     {
-      "source": "/index.html",
-      "destination": "/index.html"
-    },
-    {
       "source": "/admin",
       "destination": "/admin.html"
-    },
-    {
-      "source": "/admin.html",
-      "destination": "/admin.html"
-    },
-    {
-      "source": "/404.html",
-      "destination": "/404.html"
     }
   ]
 }
