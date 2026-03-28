@@ -4,6 +4,27 @@
   padding: 1.5rem;
 }
 
+.admin-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+  gap: 1rem;
+  align-items: center;
+}
+
+.admin-overview h2 {
+  margin: 0;
+  font-family: var(--font-display);
+}
+
+.admin-overview-note {
+  display: grid;
+  gap: 0.4rem;
+  padding: 1rem 1.1rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(85, 230, 209, 0.14);
+  background: linear-gradient(135deg, rgba(85, 230, 209, 0.12), rgba(118, 168, 255, 0.08));
+}
+
 .admin-auth-panel,
 .admin-grid {
   display: grid;
@@ -34,6 +55,46 @@
 
 .admin-grid {
   grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+}
+
+.admin-template-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin: 1rem 0 1.2rem;
+}
+
+.admin-image-preview {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+  padding: 0.9rem 1rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.admin-image-preview img {
+  width: 100%;
+  height: 5rem;
+  border-radius: 0.95rem;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-image-preview div {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.admin-image-preview strong {
+  font-family: var(--font-display);
+}
+
+.admin-image-preview span {
+  color: var(--text-muted);
+  font-size: 0.92rem;
 }
 
 .admin-item {
@@ -71,6 +132,10 @@
   background: rgba(255, 255, 255, 0.04);
 }
 
+.admin-search-shell {
+  margin-top: 1rem;
+}
+
 .detail-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -85,10 +150,35 @@
   min-height: 7rem;
 }
 
+.delivery-box {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.85rem 0.95rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.delivery-box strong,
+.delivery-box p {
+  margin: 0;
+}
+
+.delivery-box a {
+  word-break: break-all;
+  color: var(--accent);
+}
+
 @media (max-width: 980px) {
+  .admin-overview,
   .admin-auth-panel,
   .admin-grid,
   .admin-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-image-preview,
+  .thumb-row {
     grid-template-columns: 1fr;
   }
 }

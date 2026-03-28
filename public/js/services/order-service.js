@@ -46,6 +46,10 @@ export async function createOrder({ user, profile, product }) {
     const balance = Number(userData.balance || 0);
     const price = Number(productData.price || 0);
     const stock = Number(productData.stock || 0);
+    const deliveryType = productData.deliveryType === 'instant_url' ? 'instant_url' : 'manual';
+    const deliveryValue = typeof productData.deliveryValue === 'string' ? productData.deliveryValue.trim() : '';
+    const deliveryNote = typeof productData.deliveryNote === 'string' ? productData.deliveryNote.trim() : '';
+    const isInstantUrl = deliveryType === 'instant_url';
 
     if (productData.status !== 'active') {
       throw new Error('สินค้านี้ยังไม่พร้อมขาย');
@@ -59,7 +63,10 @@ export async function createOrder({ user, profile, product }) {
       throw new Error('ยอดเงินไม่พอ กรุณาเติมเงินก่อน');
     }
 
-    // ตัดเงิน, ลดสต็อก และสร้าง order ใน transaction เดียวเพื่อให้ข้อมูลไม่ค้างกลางทาง
+    if (isInstantUrl && !deliveryValue) {
+      throw new Error('สินค้าแบบ Instant URL ยังไม่ได้ตั้งค่า delivery URL');
+    }
+
     transaction.update(userRef, {
       balance: balance - price,
       lastOrderId: orderRef.id,
@@ -79,11 +86,13 @@ export async function createOrder({ user, profile, product }) {
       productName: productData.name,
       category: productData.category,
       imageUrl: productData.imageUrl,
-      deliveryType: productData.deliveryType ?? 'manual',
+      deliveryType,
+      deliveryValue,
+      deliveryNote,
       price,
       quantity: 1,
       totalAmount: price,
-      status: 'paid',
+      status: isInstantUrl ? 'completed' : 'paid',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     });

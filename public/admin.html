@@ -3,30 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NightLoot Admin</title>
+    <title>TR SYNTAX AUTOGEN SHOP Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Kanit:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/css/main.css" />
-    <link rel="stylesheet" href="/css/admin.css" />
+    <link rel="stylesheet" href="./css/main.css" />
+    <link rel="stylesheet" href="./css/admin.css" />
   </head>
   <body class="admin-body">
     <div class="noise-layer" aria-hidden="true"></div>
 
     <header class="site-header">
-      <a class="brand" href="/">
+      <a class="brand" href="./index.html">
         <span class="brand-mark" aria-hidden="true"></span>
         <span class="brand-copy">
-          <strong>NightLoot Admin</strong>
+          <strong>TR SYNTAX AUTOGEN SHOP Admin</strong>
           <small>Control Center</small>
         </span>
       </a>
 
       <div class="header-actions">
-        <a class="ghost-btn" href="/">กลับหน้าร้าน</a>
+        <a class="ghost-btn" href="./index.html">กลับหน้าร้าน</a>
         <button id="admin-logout-btn" type="button" class="ghost-btn hidden">ออกจากระบบ</button>
       </div>
     </header>
@@ -71,9 +71,33 @@
           ให้ตั้งค่า role ของผู้ใช้นี้เป็น <code>admin</code> ในคอลเลกชัน
           <code>users</code> หรือใช้สคริปต์ <code>npm run set-admin -- user@example.com</code>
         </p>
+        <div class="detail-grid">
+          <article class="list-card">
+            <p class="eyebrow">CURRENT USER</p>
+            <h3 id="admin-denied-email">-</h3>
+            <p id="admin-denied-role">role: customer</p>
+          </article>
+          <article class="list-card">
+            <p class="eyebrow">UID</p>
+            <h3 id="admin-denied-uid">-</h3>
+            <p>ไปที่ Firestore `users/{uid}` แล้วแก้ field `role` เป็น `admin`</p>
+          </article>
+        </div>
       </section>
 
       <section id="admin-shell" class="hidden">
+        <section class="panel admin-overview">
+          <div>
+            <p class="eyebrow">ADMIN WORKSPACE</p>
+            <h2 id="admin-current-name">Control Center</h2>
+            <p id="admin-current-meta" class="help-text">กำลังโหลดข้อมูลแอดมิน...</p>
+          </div>
+          <div class="admin-overview-note">
+            <strong>พร้อมใช้งานแบบง่าย</strong>
+            <span>ถ้ายังไม่เปิด Firebase Storage ให้ใช้รูป preset หรือใส่ Image URL แทนการอัปโหลดไฟล์ได้</span>
+          </div>
+        </section>
+
         <section class="admin-metrics">
           <article class="metric-card">
             <strong id="admin-product-count">0</strong>
@@ -105,14 +129,21 @@
             <article class="panel">
               <div class="section-copy">
                 <p class="eyebrow">PRODUCT FORM</p>
-                <h2>เพิ่ม / แก้ไขสินค้า</h2>
+                <h2>เพิ่ม / แก้ไขสินค้า GEM</h2>
+              </div>
+
+              <div class="admin-template-row">
+                <button type="button" class="ghost-btn" data-product-template="gem-90">GEM 90</button>
+                <button type="button" class="ghost-btn" data-product-template="gem-500">GEM 500</button>
+                <button type="button" class="ghost-btn" data-product-template="gem-1200">GEM 1200</button>
+                <button type="button" class="ghost-btn" data-product-template="gem-vip">VIP GEM</button>
               </div>
 
               <form id="product-form" class="stack-form">
                 <input id="product-id" type="hidden" />
                 <div class="field">
                   <label for="product-name">ชื่อสินค้า</label>
-                  <input id="product-name" type="text" placeholder="เช่น GPT Plus 30 Days" required />
+                  <input id="product-name" type="text" placeholder="เช่น GEM 500" required />
                 </div>
                 <div class="two-col">
                   <div class="field">
@@ -143,12 +174,44 @@
                   <input id="product-badge" type="text" placeholder="HOT / PREMIUM / NEW" />
                 </div>
                 <div class="field">
+                  <label for="product-image-preset">เลือกรูปสำเร็จรูป</label>
+                  <select id="product-image-preset">
+                    <option value="">เลือก preset</option>
+                    <option value="./assets/images/products/gem-rush.svg">Gem Rush</option>
+                    <option value="./assets/images/products/combo-pack.svg">Combo Pack</option>
+                    <option value="./assets/images/products/elite-account.svg">Elite Shield</option>
+                    <option value="./assets/images/products/ai-credit.svg">AI Credit</option>
+                    <option value="./assets/images/products/gpt-pass.svg">GPT Pass</option>
+                  </select>
+                </div>
+                <div class="field">
                   <label for="product-short-description">คำอธิบายสั้น</label>
                   <textarea id="product-short-description" rows="2" required></textarea>
                 </div>
                 <div class="field">
                   <label for="product-description">รายละเอียดสินค้า</label>
                   <textarea id="product-description" rows="4" required></textarea>
+                </div>
+                <div class="two-col">
+                  <div class="field">
+                    <label for="product-delivery-type">Delivery Type</label>
+                    <select id="product-delivery-type" required>
+                      <option value="manual">manual</option>
+                      <option value="instant_url">instant_url</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="product-delivery-value">Delivery URL</label>
+                    <input id="product-delivery-value" type="url" placeholder="https://your-link.com/redeem" />
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="product-delivery-note">Delivery Note</label>
+                  <textarea
+                    id="product-delivery-note"
+                    rows="2"
+                    placeholder="ข้อความที่จะแสดงให้ลูกค้าหลังซื้อ เช่น Copy URL นี้ไปเปิดใช้งาน"
+                  ></textarea>
                 </div>
                 <div class="field">
                   <label for="product-image-url">Image URL</label>
@@ -158,6 +221,13 @@
                   <label for="product-image-file">หรืออัปโหลดภาพขึ้น Storage</label>
                   <input id="product-image-file" type="file" accept="image/*" />
                   <small class="help-text">ถ้าเลือกไฟล์ ระบบจะอัปโหลดและใช้ลิงก์จาก Firebase Storage ให้</small>
+                </div>
+                <div class="admin-image-preview">
+                  <img id="product-image-preview" src="./assets/images/products/gem-rush.svg" alt="ตัวอย่างรูปสินค้า" />
+                  <div>
+                    <strong>ตัวอย่างรูปสินค้า</strong>
+                    <span id="product-image-preview-caption">เลือกรูป preset, วาง Image URL หรืออัปโหลดไฟล์เพื่อดูตัวอย่างก่อนบันทึก</span>
+                  </div>
                 </div>
                 <div class="action-row">
                   <button type="submit" class="primary-btn">บันทึกสินค้า</button>
@@ -171,6 +241,10 @@
                 <p class="eyebrow">PRODUCT LIST</p>
                 <h2>สินค้าในระบบ</h2>
               </div>
+              <label class="search-shell admin-search-shell">
+                <span>ค้นหาสินค้า</span>
+                <input id="admin-product-search" type="search" placeholder="ค้นหาจากชื่อ / badge / หมวดหมู่" />
+              </label>
               <div id="admin-products-list" class="list-stack"></div>
             </article>
           </div>
@@ -210,7 +284,6 @@
 
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
-    <script type="module" src="/js/pages/admin.js"></script>
+    <script type="module" src="./js/pages/admin.js"></script>
   </body>
 </html>
-

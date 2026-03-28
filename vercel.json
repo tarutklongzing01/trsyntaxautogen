@@ -1,4 +1,5 @@
 {
+  "outputDirectory": "public",
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
@@ -7,9 +8,20 @@
       "destination": "/index.html"
     },
     {
+      "source": "/index.html",
+      "destination": "/index.html"
+    },
+    {
       "source": "/admin",
       "destination": "/admin.html"
+    },
+    {
+      "source": "/admin.html",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/404.html",
+      "destination": "/404.html"
     }
   ]
 }
-

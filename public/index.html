@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NightLoot Digital</title>
+    <title>TR SYNTAX AUTOGEN SHOP</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Kanit:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="./css/main.css" />
   </head>
   <body class="store-body">
     <div class="noise-layer" aria-hidden="true"></div>
@@ -19,8 +19,8 @@
       <a class="brand" href="#top">
         <span class="brand-mark" aria-hidden="true"></span>
         <span class="brand-copy">
-          <strong id="brand-name">NightLoot Digital</strong>
-          <small>Digital Goods Marketplace</small>
+          <strong id="brand-name">TR SYNTAX AUTOGEN SHOP</strong>
+          <small>ร้านค้า Digital พร้อมระบบครบจบ ที่นี่ที่เดียว</small>
         </span>
       </a>
 
@@ -32,7 +32,7 @@
       </nav>
 
       <div class="header-actions">
-        <a id="admin-link" class="ghost-btn hidden" href="/admin.html">Admin</a>
+        <a id="admin-link" class="ghost-btn hidden" href="./admin.html">Admin</a>
         <div id="user-chip" class="user-chip hidden">
           <img id="user-chip-avatar" src="" alt="" />
           <div>
@@ -46,10 +46,10 @@
     </header>
 
     <main class="page-shell" id="top">
-      <section class="hero card">
+      <section id="store-hero" class="hero card">
         <div class="hero-copy">
           <p class="eyebrow">READY TO SELL</p>
-          <h1 id="hero-title">โครงเว็บขายสินค้า Digital แนวเว็บขายไอดีเกม</h1>
+          <h1 id="hero-title">ระบบซื้อขาย GEM</h1>
           <p id="hero-tagline" class="hero-text">
             จัดการสินค้า เติมเงิน ตรวจสลิป และสั่งซื้อแบบหัก balance อัตโนมัติจาก Firestore ได้ในหน้าร้านเดียว
           </p>
@@ -99,7 +99,7 @@
       </section>
 
       <section class="dashboard-grid">
-        <aside class="sidebar-stack">
+        <aside id="store-sidebar" class="sidebar-stack">
           <article class="panel">
             <div id="guest-callout" class="accent-block">
               <p class="eyebrow">START HERE</p>
@@ -301,6 +301,30 @@
       </div>
     </div>
 
+    <div id="delivery-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="delivery-modal-title">
+      <div class="modal-backdrop" data-close-modal="delivery-modal"></div>
+      <div class="modal-panel delivery-modal-panel">
+        <button type="button" class="modal-close" data-close-modal="delivery-modal">ปิด</button>
+        <div class="delivery-modal-copy">
+          <p class="eyebrow">INSTANT DELIVERY</p>
+          <h2 id="delivery-modal-title">รับลิงก์สินค้าได้ทันที</h2>
+          <p id="delivery-modal-subtitle" class="modal-text">ชำระเงินสำเร็จแล้ว ระบบได้เตรียมลิงก์สำหรับใช้งานสินค้าไว้ให้ทันที</p>
+          <div class="delivery-box">
+            <strong id="delivery-modal-product">Product</strong>
+            <div class="delivery-copy-row">
+              <input id="delivery-modal-url" type="text" value="" readonly />
+              <button id="delivery-modal-copy-btn" type="button" class="primary-btn">Copy URL</button>
+            </div>
+            <p id="delivery-modal-note">Copy URL นี้ไปใช้งานได้ทันที</p>
+          </div>
+          <div class="delivery-order-meta">
+            <span id="delivery-modal-order-id">Order ID: -</span>
+            <button id="delivery-modal-orders-btn" type="button" class="ghost-btn">ไปที่ Orders</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="auth-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="auth-title">
       <div class="modal-backdrop" data-close-modal="auth-modal"></div>
       <div class="modal-panel auth-modal-panel">
@@ -336,7 +360,7 @@
               <form id="register-form" class="stack-form">
                 <div class="field">
                   <label for="register-name">ชื่อที่แสดง</label>
-                  <input id="register-name" type="text" placeholder="NightLoot User" required />
+                  <input id="register-name" type="text" placeholder="TR SYNTAX Member" required />
                 </div>
                 <div class="field">
                   <label for="register-email">อีเมล</label>
@@ -363,7 +387,6 @@
 
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
-    <script type="module" src="/js/pages/storefront.js"></script>
+    <script type="module" src="./js/pages/storefront.js"></script>
   </body>
 </html>
-

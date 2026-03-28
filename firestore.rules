@@ -28,6 +28,10 @@ service cloud.firestore {
       return status in ['active', 'draft', 'archived'];
     }
 
+    function validDeliveryType(type) {
+      return type in ['manual', 'instant_url'];
+    }
+
     function validOrderStatus(status) {
       return status in ['paid', 'processing', 'completed', 'cancelled'];
     }
@@ -67,6 +71,8 @@ service cloud.firestore {
         'category',
         'imageUrl',
         'deliveryType',
+        'deliveryValue',
+        'deliveryNote',
         'price',
         'quantity',
         'totalAmount',
@@ -107,9 +113,21 @@ service cloud.firestore {
         'badge',
         'imageUrl',
         'deliveryType',
+        'deliveryValue',
+        'deliveryNote',
         'createdAt',
         'updatedAt'
       ];
+    }
+
+    function validDeliveryFields(data) {
+      return validDeliveryType(data.deliveryType)
+        && data.deliveryValue is string
+        && data.deliveryNote is string
+        && (
+          (data.deliveryType == 'manual' && data.deliveryValue == '')
+          || (data.deliveryType == 'instant_url' && data.deliveryValue.size() > 0)
+        );
     }
 
     function isValidUserCreate(uid) {
@@ -160,7 +178,7 @@ service cloud.firestore {
         && request.resource.data.balance >= 0
         && request.resource.data.balance == resource.data.balance - getAfter(/databases/$(database)/documents/orders/$(orderId)).data.totalAmount
         && getAfter(/databases/$(database)/documents/orders/$(orderId)).data.uid == uid
-        && getAfter(/databases/$(database)/documents/orders/$(orderId)).data.status == 'paid';
+        && getAfter(/databases/$(database)/documents/orders/$(orderId)).data.status in ['paid', 'completed'];
     }
 
     function isValidProductCreate() {
@@ -176,7 +194,7 @@ service cloud.firestore {
         && request.resource.data.soldCount is int
         && request.resource.data.soldCount >= 0
         && validProductStatus(request.resource.data.status)
-        && request.resource.data.deliveryType == 'manual';
+        && validDeliveryFields(request.resource.data);
     }
 
     function isValidCustomerProductPurchase(productId) {
@@ -211,11 +229,16 @@ service cloud.firestore {
         && request.resource.data.category == productBefore.data.category
         && request.resource.data.imageUrl == productBefore.data.imageUrl
         && request.resource.data.deliveryType == productBefore.data.deliveryType
+        && request.resource.data.deliveryValue == (productBefore.data.deliveryValue is string ? productBefore.data.deliveryValue : '')
+        && request.resource.data.deliveryNote == (productBefore.data.deliveryNote is string ? productBefore.data.deliveryNote : '')
         && request.resource.data.price == productBefore.data.price
         && request.resource.data.quantity == 1
         && request.resource.data.totalAmount == request.resource.data.price
         && validOrderStatus(request.resource.data.status)
-        && request.resource.data.status == 'paid'
+        && (
+          (productBefore.data.deliveryType == 'manual' && request.resource.data.status == 'paid')
+          || (productBefore.data.deliveryType == 'instant_url' && request.resource.data.status == 'completed')
+        )
         && productBefore.data.status == 'active'
         && productBefore.data.stock > 0
         && productAfter.data.stock == productBefore.data.stock - 1
@@ -268,4 +291,3 @@ service cloud.firestore {
     }
   }
 }
-

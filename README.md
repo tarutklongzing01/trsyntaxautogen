@@ -1,6 +1,6 @@
-# NightLoot Digital
+# TR SYNTAX AUTOGEN SHOP
 
-เว็บขายสินค้า digital แนวเว็บขายไอดีเกม แบบ static hosting บน Firebase ใช้ `HTML/CSS/JavaScript` + `Firebase Auth` + `Firestore` + `Firebase Storage` + `Firebase Hosting`
+ร้านค้า Digital พร้อมระบบครบจบ ที่นี่ที่เดียว แบบ static hosting บน Firebase ใช้ `HTML/CSS/JavaScript` + `Firebase Auth` + `Firestore` + `Firebase Storage` + `Firebase Hosting`
 
 ## ฟีเจอร์
 
@@ -227,7 +227,7 @@ npm run set-admin -- YOUR_UID
 git init
 git branch -M main
 git add .
-git commit -m "Initial commit: NightLoot Digital storefront and admin"
+git commit -m "Initial commit: TR SYNTAX AUTOGEN SHOP storefront and admin"
 ```
 
 จากนั้นสร้าง repo ว่างบน GitHub แล้วผูก remote

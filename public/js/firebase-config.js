@@ -1,9 +1,9 @@
 export const firebaseConfig = {
-  apiKey: 'YOUR_API_KEY',
-  authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
-  projectId: 'YOUR_PROJECT_ID',
-  storageBucket: 'YOUR_STORAGE_BUCKET',
-  messagingSenderId: 'YOUR_SENDER_ID',
-  appId: 'YOUR_APP_ID'
+  apiKey: 'AIzaSyDP3Np4xzxUE33WeO5FfhWx8A1XbjBcEkQ',
+  authDomain: 'tr-syntax-autogen.firebaseapp.com',
+  projectId: 'tr-syntax-autogen',
+  storageBucket: 'tr-syntax-autogen.firebasestorage.app',
+  messagingSenderId: '513359147027',
+  appId: '1:513359147027:web:c5492ae4b321a56b7f0fe6',
+  measurementId: 'G-LP871BW3LE'
 };
-
