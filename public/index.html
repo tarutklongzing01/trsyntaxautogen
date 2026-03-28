@@ -65,7 +65,7 @@
               <span>สินค้าออนไลน์</span>
             </article>
             <article class="metric-card">
-              <strong>3</strong>
+              <strong id="metric-payment-count">0</strong>
               <span>ช่องทางเติมเงิน</span>
             </article>
             <article class="metric-card">
@@ -79,7 +79,7 @@
           <div class="orbit orbit-large"></div>
           <div class="orbit orbit-small"></div>
           <div class="hero-screen">
-            <p class="eyebrow">GAME STORE UI</p>
+            <p class="eyebrow">SHOP OVERVIEW</p>
             <div class="hero-screen-grid">
               <div class="hero-panel">
                 <span>Wallet</span>
@@ -91,7 +91,7 @@
               </div>
               <div class="hero-panel wide">
                 <span>ระบบเหมาะกับร้านเริ่มต้น</span>
-                <strong>Simple, Responsive, Admin Ready</strong>
+                <strong>พร้อมใช้งานทั้งหน้าร้านและหลังบ้าน</strong>
               </div>
             </div>
           </div>
@@ -115,7 +115,7 @@
                 <img id="member-avatar" src="" alt="avatar" />
                 <div>
                   <h2 id="member-name">Member</h2>
-                  <p id="member-email">member@example.com</p>
+                  <p id="member-email">-</p>
                 </div>
               </div>
               <div class="member-stats">
@@ -139,7 +139,7 @@
             <div class="section-copy">
               <p class="eyebrow">PAYMENT CHANNELS</p>
               <h2>ข้อมูลบัญชีสำหรับรับโอน</h2>
-              <p>แก้ไขเลขบัญชี/พร้อมเพย์/TrueWallet ได้ในไฟล์ config ก่อน deploy จริง</p>
+              <p>แสดงเฉพาะช่องทางชำระเงินที่เปิดใช้งานจริงในระบบ</p>
             </div>
             <div id="payment-methods" class="payment-grid"></div>
           </article>
@@ -346,7 +346,7 @@
               <form id="login-form" class="stack-form">
                 <div class="field">
                   <label for="login-email">อีเมล</label>
-                  <input id="login-email" type="email" placeholder="you@example.com" required />
+                  <input id="login-email" type="email" placeholder="กรอกอีเมลของคุณ" required />
                 </div>
                 <div class="field">
                   <label for="login-password">รหัสผ่าน</label>
@@ -360,11 +360,11 @@
               <form id="register-form" class="stack-form">
                 <div class="field">
                   <label for="register-name">ชื่อที่แสดง</label>
-                  <input id="register-name" type="text" placeholder="TR SYNTAX Member" required />
+                  <input id="register-name" type="text" placeholder="ชื่อที่ต้องการแสดง" required />
                 </div>
                 <div class="field">
                   <label for="register-email">อีเมล</label>
-                  <input id="register-email" type="email" placeholder="you@example.com" required />
+                  <input id="register-email" type="email" placeholder="กรอกอีเมลของคุณ" required />
                 </div>
                 <div class="field">
                   <label for="register-password">รหัสผ่าน</label>

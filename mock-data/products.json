@@ -12,8 +12,8 @@
     "badge": "HOT",
     "imageUrl": "./assets/images/products/gem-rush.svg",
     "deliveryType": "instant_url",
-    "deliveryValue": "https://example.com/redeem/gem-rush-demo",
-    "deliveryNote": "Copy this URL and open it to redeem the GEM package immediately."
+    "deliveryValue": "",
+    "deliveryNote": "ตั้งค่า Delivery URL จริงจากหน้าแอดมินก่อนเปิดขายสินค้าแบบส่งลิงก์อัตโนมัติ"
   },
   {
     "id": "gpt-plus-30d",

@@ -7,30 +7,26 @@ export const APP_CONFIG = {
     {
       id: 'promptpay',
       label: 'PromptPay',
-      accountName: 'YOUR NAME',
-      accountValue: '080-000-0000',
-      description: 'โอนแล้วแนบสลิป ระบบจะรอแอดมินอนุมัติยอดให้'
+      accountName: '',
+      accountValue: '',
+      description: 'ชำระผ่านพร้อมเพย์'
     },
     {
       id: 'bank',
       label: 'Bank Transfer',
-      accountName: 'YOUR BANK ACCOUNT',
-      accountValue: '123-4-56789-0',
-      description: 'เหมาะกับยอดเติมสูงหรือใช้กับนิติบุคคล'
+      accountName: '',
+      accountValue: '',
+      description: 'ชำระผ่านบัญชีธนาคาร'
     },
     {
       id: 'truewallet',
       label: 'TrueWallet',
-      accountName: 'YOUR TRUEWALLET',
-      accountValue: '080-000-0000',
-      description: 'รองรับลูกค้าที่ชำระผ่านวอลเล็ตและแนบสลิปได้ทันที'
+      accountName: '',
+      accountValue: '',
+      description: 'ชำระผ่าน TrueWallet'
     }
   ],
-  supportChannels: [
-    'LINE: @nightloot',
-    'Discord: nightloot',
-    'Email: support@example.com'
-  ],
+  supportChannels: [],
   topupLimits: {
     min: 50,
     max: 50000

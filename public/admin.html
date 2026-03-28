@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="th">
   <head>
     <meta charset="UTF-8" />
@@ -21,7 +21,7 @@
         <span class="brand-mark" aria-hidden="true"></span>
         <span class="brand-copy">
           <strong>TR SYNTAX AUTOGEN SHOP Admin</strong>
-          <small>Control Center</small>
+          <small>ระบบหลังบ้าน</small>
         </span>
       </a>
 
@@ -50,7 +50,7 @@
           <form id="admin-login-form" class="stack-form">
             <div class="field">
               <label for="admin-login-email">อีเมล</label>
-              <input id="admin-login-email" type="email" placeholder="admin@example.com" required />
+              <input id="admin-login-email" type="email" placeholder="กรอกอีเมลแอดมิน" required />
             </div>
             <div class="field">
               <label for="admin-login-password">รหัสผ่าน</label>
@@ -69,7 +69,7 @@
         <h2>บัญชีนี้ยังไม่ใช่ admin</h2>
         <p>
           ให้ตั้งค่า role ของผู้ใช้นี้เป็น <code>admin</code> ในคอลเลกชัน
-          <code>users</code> หรือใช้สคริปต์ <code>npm run set-admin -- user@example.com</code>
+          <code>users</code> หรือใช้สคริปต์ตั้งสิทธิ์แอดมินจากเครื่องที่เชื่อมโปรเจกต์ไว้แล้ว
         </p>
         <div class="detail-grid">
           <article class="list-card">
@@ -89,12 +89,12 @@
         <section class="panel admin-overview">
           <div>
             <p class="eyebrow">ADMIN WORKSPACE</p>
-            <h2 id="admin-current-name">Control Center</h2>
+            <h2 id="admin-current-name">ระบบหลังบ้าน</h2>
             <p id="admin-current-meta" class="help-text">กำลังโหลดข้อมูลแอดมิน...</p>
           </div>
           <div class="admin-overview-note">
-            <strong>พร้อมใช้งานแบบง่าย</strong>
-            <span>ถ้ายังไม่เปิด Firebase Storage ให้ใช้รูป preset หรือใส่ Image URL แทนการอัปโหลดไฟล์ได้</span>
+            <strong>พร้อมจัดการร้านค้า</strong>
+            <span>ถ้ายังไม่เปิด Firebase Storage ให้ใช้รูปสำเร็จรูปหรือใส่ Image URL แทนการอัปโหลดไฟล์ได้</span>
           </div>
         </section>
 
@@ -176,7 +176,7 @@
                 <div class="field">
                   <label for="product-image-preset">เลือกรูปสำเร็จรูป</label>
                   <select id="product-image-preset">
-                    <option value="">เลือก preset</option>
+                    <option value="">เลือกรูปสำเร็จรูป</option>
                     <option value="./assets/images/products/gem-rush.svg">Gem Rush</option>
                     <option value="./assets/images/products/combo-pack.svg">Combo Pack</option>
                     <option value="./assets/images/products/elite-account.svg">Elite Shield</option>
@@ -226,7 +226,7 @@
                   <img id="product-image-preview" src="./assets/images/products/gem-rush.svg" alt="ตัวอย่างรูปสินค้า" />
                   <div>
                     <strong>ตัวอย่างรูปสินค้า</strong>
-                    <span id="product-image-preview-caption">เลือกรูป preset, วาง Image URL หรืออัปโหลดไฟล์เพื่อดูตัวอย่างก่อนบันทึก</span>
+                    <span id="product-image-preview-caption">เลือกรูปสำเร็จรูป วาง Image URL หรืออัปโหลดไฟล์เพื่อดูตัวอย่างก่อนบันทึก</span>
                   </div>
                 </div>
                 <div class="action-row">
@@ -287,3 +287,5 @@
     <script type="module" src="./js/pages/admin.js"></script>
   </body>
 </html>
+
+

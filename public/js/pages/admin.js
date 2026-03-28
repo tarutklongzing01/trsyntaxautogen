@@ -161,7 +161,7 @@ function renderAccessSummary() {
   }
 
   if (elements.currentName) {
-    elements.currentName.textContent = state.profile?.displayName || state.authUser?.email || 'Control Center';
+    elements.currentName.textContent = state.profile?.displayName || state.authUser?.email || 'ระบบหลังบ้าน';
   }
 
   if (elements.currentMeta) {
@@ -214,7 +214,7 @@ function getFriendlyAdminError(error, fallbackMessage) {
     message.includes('bucket') ||
     message.includes('object-not-found')
   ) {
-    return 'อัปโหลดรูปไม่ได้ เพราะ Firebase Storage ยังไม่พร้อม ให้ใช้รูป preset หรือใส่ Image URL แทนก่อน';
+    return 'อัปโหลดรูปไม่ได้ เพราะ Firebase Storage ยังไม่พร้อม ให้ใช้รูปสำเร็จรูปหรือใส่ Image URL แทนก่อน';
   }
 
   if (message.includes('permission') || message.includes('Missing or insufficient permissions')) {

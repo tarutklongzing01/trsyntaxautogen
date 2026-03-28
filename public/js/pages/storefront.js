@@ -41,6 +41,7 @@ const elements = {
   heroTagline: $('#hero-tagline'),
   heroBalance: $('#hero-balance'),
   metricProductCount: $('#metric-product-count'),
+  metricPaymentCount: $('#metric-payment-count'),
   paymentMethods: $('#payment-methods'),
   supportList: $('#support-list'),
   categoryFilters: $('#category-filters'),
@@ -143,8 +144,23 @@ function setView(view) {
   toggleHidden(elements.searchShell, view !== 'catalog');
 }
 
+function isConfiguredPaymentMethod(method) {
+  const accountName = String(method?.accountName || '').trim();
+  const accountValue = String(method?.accountValue || '').trim();
+  const combined = `${accountName} ${accountValue}`.toLowerCase();
+
+  return Boolean(accountName && accountValue) && !combined.includes('your ') && !combined.includes('example');
+}
+
 function renderPaymentMethods() {
-  elements.paymentMethods.innerHTML = APP_CONFIG.paymentMethods
+  const configuredMethods = APP_CONFIG.paymentMethods.filter(isConfiguredPaymentMethod);
+  const paymentPanel = elements.paymentMethods.closest('.panel');
+
+  if (elements.metricPaymentCount) {
+    elements.metricPaymentCount.textContent = String(configuredMethods.length);
+  }
+
+  elements.paymentMethods.innerHTML = configuredMethods
     .map(
       (method) => `
         <article class="payment-card">
@@ -157,18 +173,31 @@ function renderPaymentMethods() {
     )
     .join('');
 
-  elements.topupMethod.innerHTML = APP_CONFIG.paymentMethods
-    .map(
-      (method) =>
-        `<option value="${escapeHTML(method.id)}">${escapeHTML(method.label)} - ${escapeHTML(method.accountValue)}</option>`
-    )
-    .join('');
+  if (configuredMethods.length) {
+    elements.topupMethod.innerHTML = configuredMethods
+      .map(
+        (method) =>
+          `<option value="${escapeHTML(method.id)}">${escapeHTML(method.label)} - ${escapeHTML(method.accountValue)}</option>`
+      )
+      .join('');
+    elements.topupMethod.disabled = false;
+  } else {
+    elements.topupMethod.innerHTML = '<option value="">ยังไม่เปิดช่องทางชำระเงิน</option>';
+    elements.topupMethod.disabled = true;
+  }
+
+  toggleHidden(paymentPanel, configuredMethods.length === 0);
 }
 
 function renderSupportChannels() {
-  elements.supportList.innerHTML = APP_CONFIG.supportChannels
+  const channels = APP_CONFIG.supportChannels.filter((channel) => String(channel || '').trim());
+  const supportPanel = elements.supportList.closest('.panel');
+
+  elements.supportList.innerHTML = channels
     .map((channel) => `<li>${escapeHTML(channel)}</li>`)
     .join('');
+
+  toggleHidden(supportPanel, channels.length === 0);
 }
 
 function renderCategoryFilters() {
@@ -747,6 +776,11 @@ async function submitTopup(event) {
   const selectedMethod = APP_CONFIG.paymentMethods.find((method) => method.id === paymentMethod);
   const slipFile = $('#topup-slip').files?.[0];
   const note = $('#topup-note').value.trim();
+
+  if (!selectedMethod || !isConfiguredPaymentMethod(selectedMethod)) {
+    notify('error', 'ยังไม่ได้ตั้งค่าช่องทางชำระเงิน');
+    return;
+  }
 
   if (amount < APP_CONFIG.topupLimits.min || amount > APP_CONFIG.topupLimits.max) {
     notify('error', `จำนวนเงินต้องอยู่ระหว่าง ${APP_CONFIG.topupLimits.min}-${APP_CONFIG.topupLimits.max} บาท`);
