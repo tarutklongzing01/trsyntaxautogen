@@ -12,8 +12,9 @@ import {
 } from '../services/auth-service.js';
 import { createOrder, fetchUserOrders } from '../services/order-service.js';
 import { fetchActiveProducts } from '../services/product-service.js';
-import { uploadAvatar, uploadSlip } from '../services/storage-service.js';
-import { createTopup, fetchUserTopups } from '../services/topup-service.js';
+import { uploadAvatar } from '../services/storage-service.js';
+import { createKbankQrTopup, inquireKbankTopup } from '../services/topup-api-service.js';
+import { fetchUserTopups } from '../services/topup-service.js';
 import { ensureUserProfile, fetchUserProfile, updateUserProfile } from '../services/user-service.js';
 
 const state = {
@@ -22,6 +23,7 @@ const state = {
   products: [],
   orders: [],
   topups: [],
+  activeTopupId: '',
   selectedCategory: 'ทั้งหมด',
   searchTerm: '',
   activeView: 'catalog',
@@ -67,6 +69,17 @@ const elements = {
   topupForm: $('#topup-form'),
   topupMethod: $('#topup-method'),
   topupHistory: $('#topup-history'),
+  topupQrPanel: $('#topup-qr-panel'),
+  topupQrImage: $('#topup-qr-image'),
+  topupQrTitle: $('#topup-qr-title'),
+  topupQrStatus: $('#topup-qr-status'),
+  topupQrMessage: $('#topup-qr-message'),
+  topupQrAmount: $('#topup-qr-amount'),
+  topupQrReference: $('#topup-qr-reference'),
+  topupQrExpiresAt: $('#topup-qr-expires-at'),
+  topupQrUpdatedAt: $('#topup-qr-updated-at'),
+  topupQrRefreshBtn: $('#topup-qr-refresh-btn'),
+  topupQrCopyRefBtn: $('#topup-qr-copy-ref-btn'),
   ordersList: $('#orders-list'),
   profileForm: $('#profile-form'),
   productModal: $('#product-modal'),
@@ -105,6 +118,75 @@ function isLoggedIn() {
 
 function emptyState(message) {
   return `<div class="empty-state">${escapeHTML(message)}</div>`;
+}
+
+const TOPUP_STATUS_LABELS = {
+  pending: 'Pending',
+  paid: 'Paid',
+  expired: 'Expired',
+  failed: 'Failed',
+  cancelled: 'Cancelled',
+  approved: 'Approved',
+  rejected: 'Rejected'
+};
+
+function getDynamicQrMethod() {
+  return (
+    APP_CONFIG.paymentMethods.find((method) => method?.dynamicQr) || {
+      id: 'kbank_qr',
+      label: 'KBank QR API',
+      accountName: 'Dynamic QR',
+      accountValue: 'Generate QR from wallet form',
+      copyValue: '',
+      copyLabel: '',
+      bankName: 'Kasikornbank',
+      description: 'A fresh QR is created for each topup amount.',
+      instructions: 'Create the QR, scan it in your banking app, and check the payment status.',
+      dynamicQr: true
+    }
+  );
+}
+
+function formatTopupStatus(status) {
+  const normalized = String(status || '').trim().toLowerCase();
+  return TOPUP_STATUS_LABELS[normalized] || normalized || '-';
+}
+
+function getTopupReference(topup) {
+  return String(topup?.partnerTxnUid || topup?.providerTxnId || topup?.id || '-').trim() || '-';
+}
+
+function hasRenderableQr(topup) {
+  return Boolean(String(topup?.qrImageDataUrl || '').trim());
+}
+
+function getActiveTopup() {
+  const selectedTopup = state.topups.find((topup) => topup.id === state.activeTopupId);
+  if (selectedTopup) {
+    return selectedTopup;
+  }
+
+  return (
+    state.topups.find((topup) => topup.status === 'pending' && hasRenderableQr(topup)) || null
+  );
+}
+
+function getTopupStatusMessage(topup) {
+  const status = String(topup?.status || '').toLowerCase();
+
+  if (status === 'paid') {
+    return 'Payment confirmed and balance has been added to your wallet.';
+  }
+
+  if (status === 'expired') {
+    return 'This QR has expired. Create a new topup to continue.';
+  }
+
+  if (status === 'failed' || status === 'cancelled') {
+    return 'This payment was not completed. Please create a new QR if needed.';
+  }
+
+  return 'Scan this QR with your banking app and then check the payment status.';
 }
 
 function openModal(element) {
@@ -162,7 +244,7 @@ function getPaymentDisplayName(method) {
 }
 
 function getPaymentCopyValue(method) {
-  return String(method?.copyValue || method?.accountValue || '').trim();
+  return String(method?.copyValue ?? method?.accountValue ?? '').trim();
 }
 
 function getPaymentDisplayValue(method) {
@@ -174,6 +256,10 @@ function getPaymentChannelLabel(method) {
 }
 
 function isConfiguredPaymentMethod(method) {
+  if (method?.dynamicQr) {
+    return Boolean(method?.label);
+  }
+
   const displayName = getPaymentDisplayName(method);
   const copyValue = getPaymentCopyValue(method);
   const combined = `${method?.label || ''} ${displayName} ${copyValue} ${method?.bankName || ''}`.toLowerCase();
@@ -214,7 +300,7 @@ function renderPaymentMedia(method) {
 }
 
 function renderPaymentMethods() {
-  const configuredMethods = APP_CONFIG.paymentMethods.filter(isConfiguredPaymentMethod);
+  const configuredMethods = [getDynamicQrMethod()].filter(isConfiguredPaymentMethod);
   const paymentPanel = elements.paymentMethods.closest('.panel');
 
   if (elements.metricPaymentCount) {
@@ -245,16 +331,22 @@ function renderPaymentMethods() {
           ${method.description ? `<p>${escapeHTML(method.description)}</p>` : ''}
           ${method.instructions ? `<p class="help-text payment-card-note">${escapeHTML(method.instructions)}</p>` : ''}
           ${renderPaymentMedia(method)}
-          <div class="payment-card-actions">
-            <button
-              type="button"
-              class="ghost-btn payment-copy-btn"
-              data-copy-payment="${escapeHTML(copyValue)}"
-              data-copy-payment-label="${escapeHTML(copyLabel)}"
-            >
-              ${escapeHTML(copyLabel)}
-            </button>
-          </div>
+          ${
+            copyValue
+              ? `
+                <div class="payment-card-actions">
+                  <button
+                    type="button"
+                    class="ghost-btn payment-copy-btn"
+                    data-copy-payment="${escapeHTML(copyValue)}"
+                    data-copy-payment-label="${escapeHTML(copyLabel)}"
+                  >
+                    ${escapeHTML(copyLabel)}
+                  </button>
+                </div>
+              `
+              : ''
+          }
         </article>
       `;
       }
@@ -576,10 +668,84 @@ function renderAuthState() {
   toggleHidden(elements.adminLink, state.profile.role !== 'admin');
 }
 
+function renderActiveTopup() {
+  const topup = getActiveTopup();
+  const shouldShow = isLoggedIn() && Boolean(topup) && hasRenderableQr(topup);
+
+  toggleHidden(elements.topupQrPanel, !shouldShow);
+
+  if (!shouldShow) {
+    if (elements.topupQrImage) {
+      elements.topupQrImage.src = '';
+    }
+    return;
+  }
+
+  state.activeTopupId = topup.id;
+  elements.topupQrTitle.textContent = topup.channelLabel || 'KBank QR Payment';
+  elements.topupQrStatus.textContent = formatTopupStatus(topup.status);
+  elements.topupQrStatus.className = `status-pill ${String(topup.status || '').toLowerCase()}`;
+  elements.topupQrMessage.textContent = topup.failureReason || getTopupStatusMessage(topup);
+  elements.topupQrAmount.textContent = formatCurrency(topup.amount);
+  elements.topupQrReference.textContent = getTopupReference(topup);
+  elements.topupQrExpiresAt.textContent = formatDate(topup.expiresAt);
+  elements.topupQrUpdatedAt.textContent = formatDate(topup.lastSyncedAt || topup.updatedAt || topup.createdAt);
+  elements.topupQrImage.src = topup.qrImageDataUrl || '';
+  elements.topupQrRefreshBtn.dataset.topupId = topup.id;
+  elements.topupQrCopyRefBtn.dataset.topupRef = getTopupReference(topup);
+  elements.topupQrRefreshBtn.disabled = String(topup.status || '').toLowerCase() !== 'pending';
+}
+
+async function refreshTopupStatus(topupId) {
+  if (!isLoggedIn()) {
+    openModal(elements.authModal);
+    return;
+  }
+
+  try {
+    elements.topupQrRefreshBtn.disabled = true;
+    await inquireKbankTopup(state.authUser, topupId);
+    await loadMemberData();
+    renderAuthState();
+    renderTopups();
+
+    const latestTopup = state.topups.find((entry) => entry.id === topupId);
+    if (!latestTopup) {
+      notify('info', 'Payment status refreshed.');
+      return;
+    }
+
+    const status = String(latestTopup?.status || '').toLowerCase();
+
+    if (status === 'paid') {
+      notify('success', 'Payment confirmed and wallet balance updated.');
+      return;
+    }
+
+    if (status === 'expired') {
+      notify('info', 'This QR has expired. Please create a new one.');
+      return;
+    }
+
+    if (status === 'failed' || status === 'cancelled') {
+      notify('error', latestTopup?.failureReason || 'Payment was not completed.');
+      return;
+    }
+
+    notify('info', 'Payment is still pending. Please complete the transfer and try again.');
+  } catch (error) {
+    notify('error', error.message || 'Unable to refresh payment status');
+  } finally {
+    renderActiveTopup();
+  }
+}
+
 function renderTopups() {
   if (!isLoggedIn()) {
     elements.topupHistory.innerHTML = emptyState('เข้าสู่ระบบก่อนเพื่อดูประวัติแจ้งเติมเงิน');
     setDisabled($$('input, select, textarea, button', elements.topupForm), true);
+    state.activeTopupId = '';
+    renderActiveTopup();
     return;
   }
 
@@ -592,9 +758,9 @@ function renderTopups() {
               <div class="list-card-head">
                 <div>
                   <h3>${formatCurrency(topup.amount)}</h3>
-                  <p>${escapeHTML(topup.channelLabel)}</p>
+                  <p>${escapeHTML(topup.channelLabel || 'KBank QR API')}</p>
                 </div>
-                <span class="status-pill ${escapeHTML(topup.status)}">${escapeHTML(topup.status)}</span>
+                <span class="status-pill ${escapeHTML(topup.status)}">${escapeHTML(formatTopupStatus(topup.status))}</span>
               </div>
               <div class="list-meta">
                 <span>${formatDate(topup.createdAt)}</span>
@@ -606,6 +772,7 @@ function renderTopups() {
         )
         .join('')
     : emptyState('ยังไม่มีรายการแจ้งเติมเงิน');
+  renderActiveTopup();
 }
 
 function hasInstantDelivery(order) {
@@ -866,9 +1033,7 @@ async function submitTopup(event) {
   }
 
   const amount = Number($('#topup-amount').value);
-  const paymentMethod = elements.topupMethod.value;
-  const selectedMethod = APP_CONFIG.paymentMethods.find((method) => method.id === paymentMethod);
-  const slipFile = $('#topup-slip').files?.[0];
+  const selectedMethod = getDynamicQrMethod();
   const note = $('#topup-note').value.trim();
 
   if (!selectedMethod || !isConfiguredPaymentMethod(selectedMethod)) {
@@ -881,7 +1046,7 @@ async function submitTopup(event) {
     return;
   }
 
-  if (!slipFile) {
+  if (false) { // Legacy slip validation kept unreachable during QR migration.
     notify('error', 'กรุณาอัปโหลดสลิปก่อนส่งแจ้งเติมเงิน');
     return;
   }
@@ -890,22 +1055,22 @@ async function submitTopup(event) {
     setDisabled($$('input, select, textarea, button', elements.topupForm), true);
 
     // อัปโหลดสลิปขึ้น Storage ก่อน แล้วค่อยสร้างเอกสาร topup เพื่อเก็บ path/url กลับไปใช้
-    const uploadResult = await uploadSlip(state.authUser.uid, slipFile);
-
-    await createTopup({
-      uid: state.authUser.uid,
-      userEmail: state.profile.email || state.authUser.email || '',
+    const result = await createKbankQrTopup(state.authUser, {
       amount,
-      paymentMethod,
-      channelLabel: getPaymentChannelLabel(selectedMethod) || paymentMethod,
-      slipPath: uploadResult.path,
-      slipUrl: uploadResult.url,
       note
     });
 
     clearForm(elements.topupForm);
     state.topups = await fetchUserTopups(state.authUser.uid);
+    state.activeTopupId = result.topupId || state.activeTopupId;
     renderTopups();
+    notify(
+      'success',
+      result.reusedExistingTopup
+        ? 'You already have an active QR. Showing the latest payment code.'
+        : 'QR created successfully. Scan it in your banking app and then check status.'
+    );
+    return;
     notify('success', 'ส่งแจ้งเติมเงินเรียบร้อย รอแอดมินตรวจสอบสลิป');
   } catch (error) {
     notify('error', error.message || 'ส่งแจ้งเติมเงินไม่สำเร็จ');
@@ -1009,6 +1174,61 @@ function bindAuthTabs() {
   });
 }
 
+function prepareQrTopupForm() {
+  if (!elements.topupMethod && elements.topupForm) {
+    const hiddenSelect = document.createElement('select');
+    hiddenSelect.id = 'topup-method';
+    hiddenSelect.className = 'hidden';
+    hiddenSelect.tabIndex = -1;
+    hiddenSelect.setAttribute('aria-hidden', 'true');
+    elements.topupForm.prepend(hiddenSelect);
+    elements.topupMethod = hiddenSelect;
+  }
+
+  const methodField = elements.topupForm?.querySelector('label[for="topup-method"]')?.closest('.field');
+  const slipInput = $('#topup-slip');
+  const slipField = slipInput?.closest('.field');
+  const submitButton = elements.topupForm?.querySelector('button[type="submit"]');
+  const walletPanel = elements.walletBalance?.closest('.sub-panel');
+  const walletHelpText = walletPanel?.querySelector('.help-text');
+  const topupPanel = elements.topupForm?.closest('.sub-panel');
+  const topupHeading = topupPanel?.querySelector('h3');
+  let formHelpText = elements.topupForm?.querySelector('[data-topup-hint]');
+
+  toggleHidden(methodField, true);
+  toggleHidden(slipField, true);
+
+  if (slipInput) {
+    slipInput.required = false;
+    slipInput.disabled = true;
+  }
+
+  if (!formHelpText && submitButton) {
+    formHelpText = document.createElement('p');
+    formHelpText.className = 'help-text';
+    formHelpText.dataset.topupHint = 'true';
+    submitButton.before(formHelpText);
+  }
+
+  if (submitButton) {
+    submitButton.textContent = 'Create QR Topup';
+  }
+
+  if (formHelpText) {
+    formHelpText.textContent =
+      'Create a KBank QR for the exact amount, pay in your banking app, then use Check Status to refresh your wallet.';
+  }
+
+  if (walletHelpText) {
+    walletHelpText.textContent =
+      'Topups now use KBank QR API. Once payment is confirmed, balance is credited to your wallet automatically.';
+  }
+
+  if (topupHeading) {
+    topupHeading.textContent = 'Create QR Topup';
+  }
+}
+
 function bindEvents() {
   elements.openAuthBtn.addEventListener('click', () => openModal(elements.authModal));
   elements.guestAuthBtn.addEventListener('click', () => openModal(elements.authModal));
@@ -1021,6 +1241,18 @@ function bindEvents() {
     renderProducts();
   });
   elements.topupForm.addEventListener('submit', submitTopup);
+  elements.topupQrRefreshBtn.addEventListener('click', () => {
+    const topupId = elements.topupQrRefreshBtn.dataset.topupId;
+    if (!topupId) {
+      notify('error', 'No active QR to refresh');
+      return;
+    }
+
+    refreshTopupStatus(topupId);
+  });
+  elements.topupQrCopyRefBtn.addEventListener('click', () => {
+    copyTextValue(elements.topupQrCopyRefBtn.dataset.topupRef, 'Copied payment reference', 'No payment reference found');
+  });
   elements.profileForm.addEventListener('submit', submitProfile);
   elements.loginForm.addEventListener('submit', submitLogin);
   elements.registerForm.addEventListener('submit', submitRegister);
@@ -1121,6 +1353,7 @@ async function bootstrap() {
   elements.brandName.textContent = APP_CONFIG.brandName;
   elements.heroTitle.textContent = 'ระบบซื้อขาย GEM';
   elements.heroTagline.textContent = APP_CONFIG.tagline;
+  prepareQrTopupForm();
   renderPaymentMethods();
   renderSupportChannels();
   renderCategoryFilters();

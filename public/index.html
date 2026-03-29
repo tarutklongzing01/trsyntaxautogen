@@ -192,7 +192,6 @@
                   </div>
                   <div class="field">
                     <label for="topup-method">ช่องทางชำระเงิน</label>
-                    <select id="topup-method" required></select>
                   </div>
                   <div class="field">
                     <label for="topup-note">หมายเหตุ</label>
@@ -205,6 +204,45 @@
                   </div>
                   <button type="submit" class="primary-btn full-width">ส่งแจ้งเติมเงิน</button>
                 </form>
+                <div id="topup-qr-panel" class="topup-qr-panel hidden">
+                  <div class="topup-qr-shell">
+                    <div class="topup-qr-preview">
+                      <img id="topup-qr-image" src="" alt="KBank QR payment" loading="lazy" decoding="async" />
+                    </div>
+                    <div class="topup-qr-meta">
+                      <div class="list-card-head">
+                        <div>
+                          <p class="eyebrow">ACTIVE QR</p>
+                          <h3 id="topup-qr-title">KBank QR Payment</h3>
+                        </div>
+                        <span id="topup-qr-status" class="status-pill pending">pending</span>
+                      </div>
+                      <p id="topup-qr-message" class="help-text">Create a topup to display the latest QR code.</p>
+                      <div class="topup-qr-fields">
+                        <div class="topup-qr-field">
+                          <span>Amount</span>
+                          <strong id="topup-qr-amount">-</strong>
+                        </div>
+                        <div class="topup-qr-field">
+                          <span>Reference</span>
+                          <strong id="topup-qr-reference">-</strong>
+                        </div>
+                        <div class="topup-qr-field">
+                          <span>Expires</span>
+                          <strong id="topup-qr-expires-at">-</strong>
+                        </div>
+                        <div class="topup-qr-field">
+                          <span>Last Update</span>
+                          <strong id="topup-qr-updated-at">-</strong>
+                        </div>
+                      </div>
+                      <div class="payment-card-actions">
+                        <button id="topup-qr-refresh-btn" type="button" class="primary-btn">Check Status</button>
+                        <button id="topup-qr-copy-ref-btn" type="button" class="ghost-btn">Copy Reference</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </article>
             </div>
 

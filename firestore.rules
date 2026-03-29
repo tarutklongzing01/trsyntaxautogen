@@ -37,11 +37,11 @@ service cloud.firestore {
     }
 
     function validTopupStatus(status) {
-      return status in ['pending', 'approved', 'rejected'];
+      return status in ['pending', 'approved', 'rejected', 'paid', 'expired', 'failed', 'cancelled'];
     }
 
     function validPaymentMethod(method) {
-      return method in ['promptpay', 'bank', 'truewallet'];
+      return method in ['promptpay', 'bank', 'truewallet', 'kbank_qr'];
     }
 
     function userCreateKeys() {

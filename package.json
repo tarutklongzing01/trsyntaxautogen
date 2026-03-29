@@ -7,7 +7,7 @@
     "set-admin": "node ./scripts/set-admin.mjs"
   },
   "dependencies": {
-    "firebase-admin": "^13.0.0"
+    "firebase-admin": "^13.0.0",
+    "qrcode": "^1.5.4"
   }
 }
-

@@ -606,6 +606,75 @@ button {
   margin: 0;
 }
 
+.topup-qr-panel {
+  margin-top: 1rem;
+}
+
+.topup-qr-shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.topup-qr-preview {
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(85, 230, 209, 0.2);
+  background:
+    radial-gradient(circle at top, rgba(117, 243, 219, 0.16), transparent 52%),
+    rgba(255, 255, 255, 0.04);
+}
+
+.topup-qr-preview img {
+  width: min(100%, 280px);
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  padding: 0.9rem;
+  border-radius: 1rem;
+  background: #ffffff;
+}
+
+.topup-qr-meta {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.topup-qr-fields {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.topup-qr-field {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.topup-qr-field span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.topup-qr-field strong {
+  margin: 0;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+@media (min-width: 900px) {
+  .topup-qr-shell {
+    grid-template-columns: minmax(240px, 300px) 1fr;
+    align-items: start;
+  }
+}
+
 .support-list {
   margin: 0;
   padding-left: 1rem;
@@ -939,7 +1008,8 @@ button {
 
 .status-pill.accent,
 .status-pill.approved,
-.status-pill.completed {
+.status-pill.completed,
+.status-pill.paid {
   color: #07211d;
   background: linear-gradient(135deg, var(--accent), #9be8ff);
   border-color: transparent;
@@ -956,6 +1026,13 @@ button {
 .status-pill.cancelled {
   color: #3c0d0d;
   background: linear-gradient(135deg, #ffa0a0, #ff7a7a);
+  border-color: transparent;
+}
+
+.status-pill.failed,
+.status-pill.expired {
+  color: #432312;
+  background: linear-gradient(135deg, #ffb89b, #ff8c66);
   border-color: transparent;
 }
 

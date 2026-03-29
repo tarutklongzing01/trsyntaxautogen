@@ -365,6 +365,7 @@ function renderTopups() {
           const slipLink = topup.slipUrl
             ? `<a href="${escapeHTML(topup.slipUrl)}" target="_blank" rel="noreferrer">เปิดสลิป</a>`
             : '<span>ยังไม่มีสลิป</span>';
+          const autoManaged = topup.paymentMethod === 'kbank_qr';
 
           return `
             <article class="list-card admin-item" data-topup-id="${topup.id}">
@@ -384,10 +385,10 @@ function renderTopups() {
               <textarea class="admin-note" placeholder="หมายเหตุจากแอดมิน">${escapeHTML(topup.adminNote || '')}</textarea>
               <div class="admin-actions">
                 <button type="button" class="primary-btn" data-topup-action="approve" data-topup-id="${topup.id}" ${
-                  topup.status !== 'pending' ? 'disabled' : ''
+                  topup.status !== 'pending' || autoManaged ? 'disabled' : ''
                 }>อนุมัติ</button>
                 <button type="button" class="ghost-btn" data-topup-action="reject" data-topup-id="${topup.id}" ${
-                  topup.status !== 'pending' ? 'disabled' : ''
+                  topup.status !== 'pending' || autoManaged ? 'disabled' : ''
                 }>ปฏิเสธ</button>
               </div>
             </article>
