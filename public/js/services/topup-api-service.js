@@ -25,3 +25,7 @@ export function createKbankQrTopup(user, payload) {
 export function inquireKbankTopup(user, topupId) {
   return requestWithAuth(user, '/api/topups/inquire-kbank', { topupId });
 }
+
+export function verifyTopupSlip(user, payload) {
+  return requestWithAuth(user, '/api/topups/verify-slip', payload);
+}
