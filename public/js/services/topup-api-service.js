@@ -22,6 +22,24 @@ export function createKbankQrTopup(user, payload) {
   return requestWithAuth(user, '/api/topups/create-kbank-qr', payload);
 }
 
+export async function createPromptPayQr(payload) {
+  const response = await fetch('/api/topups/create-promptpay-qr', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload || {})
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || data.ok === false) {
+    throw new Error(data.error || 'Unable to create PromptPay QR');
+  }
+
+  return data;
+}
+
 export function inquireKbankTopup(user, topupId) {
   return requestWithAuth(user, '/api/topups/inquire-kbank', { topupId });
 }

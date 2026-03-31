@@ -13,7 +13,7 @@ import {
 import { createOrder, fetchUserOrders } from '../services/order-service.js';
 import { fetchActiveProducts } from '../services/product-service.js';
 import { uploadAvatar, uploadSlip } from '../services/storage-service.js';
-import { verifyTopupSlip } from '../services/topup-api-service.js';
+import { createPromptPayQr, verifyTopupSlip } from '../services/topup-api-service.js';
 import { fetchUserTopups } from '../services/topup-service.js';
 import { ensureUserProfile, fetchUserProfile, updateUserProfile } from '../services/user-service.js';
 
@@ -23,7 +23,7 @@ const state = {
   products: [],
   orders: [],
   topups: [],
-  activeTopupId: '',
+  activePromptPayQr: null,
   selectedCategory: 'ทั้งหมด',
   searchTerm: '',
   activeView: 'catalog',
@@ -133,18 +133,27 @@ const TOPUP_STATUS_LABELS = {
 function getDynamicQrMethod() {
   return (
     APP_CONFIG.paymentMethods.find((method) => method?.dynamicQr) || {
-      id: 'kbank_qr',
-      label: 'KBank QR API',
+      id: 'promptpay',
+      label: 'PromptPay QR',
       accountName: 'Dynamic QR',
       accountValue: 'Generate QR from wallet form',
       copyValue: '',
       copyLabel: '',
-      bankName: 'Kasikornbank',
+      bankName: 'PromptPay',
       description: 'A fresh QR is created for each topup amount.',
-      instructions: 'Create the QR, scan it in your banking app, and check the payment status.',
+      instructions: 'Create the QR, pay in your banking app, and then upload the slip to verify the topup.',
       dynamicQr: true
     }
   );
+}
+
+function getSelectedTopupMethod() {
+  const selectedMethodId = String(elements.topupMethod?.value || '').trim();
+  return APP_CONFIG.paymentMethods.find((method) => method.id === selectedMethodId) || null;
+}
+
+function isDynamicQrMethod(method) {
+  return Boolean(method?.dynamicQr);
 }
 
 function formatTopupStatus(status) {
@@ -152,27 +161,43 @@ function formatTopupStatus(status) {
   return TOPUP_STATUS_LABELS[normalized] || normalized || '-';
 }
 
-function getTopupReference(topup) {
-  return String(topup?.partnerTxnUid || topup?.providerTxnId || topup?.id || '-').trim() || '-';
+function getTopupReference(source) {
+  return String(source?.partnerTxnUid || source?.providerTxnId || source?.promptPayIdMasked || source?.id || '-').trim() || '-';
 }
 
-function hasRenderableQr(topup) {
-  return Boolean(String(topup?.qrImageDataUrl || '').trim());
+function getActivePromptPayQr() {
+  return state.activePromptPayQr && String(state.activePromptPayQr?.qrImageDataUrl || '').trim()
+    ? state.activePromptPayQr
+    : null;
 }
 
-function getActiveTopup() {
-  const selectedTopup = state.topups.find((topup) => topup.id === state.activeTopupId);
-  if (selectedTopup) {
-    return selectedTopup;
+function clearActivePromptPayQr() {
+  state.activePromptPayQr = null;
+}
+
+function hasRenderableQr(source) {
+  return Boolean(String(source?.qrImageDataUrl || '').trim());
+}
+
+function isExpiredQrPreview(preview) {
+  if (!preview?.expiresAt) {
+    return false;
   }
 
-  return (
-    state.topups.find((topup) => topup.status === 'pending' && hasRenderableQr(topup)) || null
-  );
+  const expiresAt = new Date(preview.expiresAt);
+  return !Number.isNaN(expiresAt.getTime()) && expiresAt.getTime() <= Date.now();
 }
 
-function getTopupStatusMessage(topup) {
-  const status = String(topup?.status || '').toLowerCase();
+function getTopupStatusMessage(source) {
+  if (source?.sourceType === 'promptpay_preview') {
+    if (isExpiredQrPreview(source)) {
+      return 'This PromptPay QR has expired. Generate a new QR and then upload the payment slip after transfer.';
+    }
+
+    return 'Scan this PromptPay QR in your banking app, complete the transfer, and then upload the slip to verify the wallet topup.';
+  }
+
+  const status = String(source?.status || '').toLowerCase();
 
   if (status === 'paid') {
     return 'Payment confirmed and balance has been added to your wallet.';
@@ -199,7 +224,6 @@ function openModal(element) {
 
 function closeModal(element) {
   if (!element) {
-    return;
   }
 
   toggleHidden(element, true);
@@ -244,6 +268,19 @@ function getPaymentDisplayName(method) {
 
 function getPaymentCopyValue(method) {
   return String(method?.copyValue ?? method?.accountValue ?? '').trim();
+}
+
+function getConfiguredPromptPayId(method) {
+  const candidates = [method?.promptPayId, method?.copyValue, method?.accountValue];
+
+  for (const candidate of candidates) {
+    const normalized = String(candidate || '').replace(/[^0-9]/g, '');
+    if ([10, 13, 15].includes(normalized.length)) {
+      return normalized;
+    }
+  }
+
+  return '';
 }
 
 function getPaymentDisplayValue(method) {
@@ -434,7 +471,6 @@ function resolveImageUrl(value) {
 
 function attachFallbackImage(img) {
   if (!img || img.dataset.fallbackBound === 'true') {
-    return;
   }
 
   img.dataset.fallbackBound = 'true';
@@ -668,34 +704,70 @@ function renderAuthState() {
 }
 
 function renderActiveTopup() {
-  state.activeTopupId = '';
-  toggleHidden(elements.topupQrPanel, true);
+  const activeQr = getActivePromptPayQr();
+  const dynamicMethod = getDynamicQrMethod();
+
+  toggleHidden(elements.topupQrPanel, !activeQr);
 
   if (elements.topupQrImage) {
-    elements.topupQrImage.src = '';
+    elements.topupQrImage.src = activeQr?.qrImageDataUrl || '';
   }
 
   if (elements.topupQrRefreshBtn) {
     elements.topupQrRefreshBtn.dataset.topupId = '';
-    elements.topupQrRefreshBtn.disabled = true;
+    elements.topupQrRefreshBtn.disabled = !activeQr;
+    elements.topupQrRefreshBtn.textContent = 'Generate New QR';
+    toggleHidden(elements.topupQrRefreshBtn, !activeQr);
   }
 
   if (elements.topupQrCopyRefBtn) {
-    elements.topupQrCopyRefBtn.dataset.topupRef = '';
+    elements.topupQrCopyRefBtn.dataset.topupRef = activeQr?.promptPayId || '';
+    elements.topupQrCopyRefBtn.disabled = !activeQr?.promptPayId;
+    elements.topupQrCopyRefBtn.textContent = 'Copy PromptPay ID';
   }
+
+  if (!activeQr) {
+    elements.topupQrTitle.textContent = dynamicMethod.label || 'PromptPay QR Payment';
+    elements.topupQrStatus.textContent = 'pending';
+    elements.topupQrStatus.className = 'status-pill pending';
+    elements.topupQrMessage.textContent = 'Create a PromptPay QR to start the transfer flow.';
+    elements.topupQrAmount.textContent = '-';
+    elements.topupQrReference.textContent = '-';
+    elements.topupQrExpiresAt.textContent = '-';
+    elements.topupQrUpdatedAt.textContent = '-';
+    syncTopupFormMode();
+    return;
+  }
+
+  const expired = isExpiredQrPreview(activeQr);
+  const activeQrMeta = {
+    ...activeQr,
+    sourceType: 'promptpay_preview'
+  };
+
+  elements.topupQrTitle.textContent = dynamicMethod.label || 'PromptPay QR Payment';
+  elements.topupQrStatus.textContent = expired ? 'Expired' : 'Ready';
+  elements.topupQrStatus.className = `status-pill ${expired ? 'expired' : 'pending'}`;
+  elements.topupQrMessage.textContent = getTopupStatusMessage(activeQrMeta);
+  elements.topupQrAmount.textContent = formatCurrency(activeQr.amount);
+  elements.topupQrReference.textContent = getTopupReference(activeQrMeta);
+  elements.topupQrExpiresAt.textContent = formatDate(activeQr.expiresAt);
+  elements.topupQrUpdatedAt.textContent = formatDate(activeQr.createdAt);
+  syncTopupFormMode();
 }
 
 async function refreshTopupStatus(topupId) {
   void topupId;
+  clearActivePromptPayQr();
   renderActiveTopup();
-  notify('info', 'Slip verification runs automatically after you upload the transfer slip.');
+  notify('info', 'Generate a fresh PromptPay QR after changing the amount or when the previous QR expires.');
 }
 
 function renderTopups() {
   if (!isLoggedIn()) {
     elements.topupHistory.innerHTML = emptyState('เข้าสู่ระบบก่อนเพื่อดูประวัติแจ้งเติมเงิน');
     setDisabled($$('input, select, textarea, button', elements.topupForm), true);
-    state.activeTopupId = '';
+    clearActivePromptPayQr();
     renderActiveTopup();
     return;
   }
@@ -895,6 +967,7 @@ function syncLoggedOutState() {
   state.profile = null;
   state.orders = [];
   state.topups = [];
+  clearActivePromptPayQr();
   renderAuthState();
   renderProducts();
   renderTopups();
@@ -988,6 +1061,8 @@ async function submitTopup(event) {
   const selectedMethod = APP_CONFIG.paymentMethods.find((method) => method.id === selectedMethodId) || null;
   const note = $('#topup-note').value.trim();
   const slipFile = $('#topup-slip').files?.[0];
+  const activePromptPayQr = getActivePromptPayQr();
+  const dynamicPromptPay = isDynamicQrMethod(selectedMethod);
 
   if (!selectedMethod || !isConfiguredPaymentMethod(selectedMethod)) {
     notify('error', 'ยังไม่ได้ตั้งค่าช่องทางชำระเงิน');
@@ -996,6 +1071,26 @@ async function submitTopup(event) {
 
   if (amount < APP_CONFIG.topupLimits.min || amount > APP_CONFIG.topupLimits.max) {
     notify('error', `จำนวนเงินต้องอยู่ระหว่าง ${APP_CONFIG.topupLimits.min}-${APP_CONFIG.topupLimits.max} บาท`);
+    return;
+  }
+
+  if (dynamicPromptPay && (!activePromptPayQr || activePromptPayQr.amount !== amount || (isExpiredQrPreview(activePromptPayQr) && !slipFile))) {
+    try {
+      setDisabled($$('input, select, textarea, button', elements.topupForm), true);
+
+      state.activePromptPayQr = await createPromptPayQr({
+        amount,
+        promptPayId: getConfiguredPromptPayId(selectedMethod)
+      });
+
+      renderActiveTopup();
+      notify('success', 'PromptPay QR created. Complete the transfer and then upload the slip to verify the topup.');
+    } catch (error) {
+      notify('error', error.message || 'Unable to create PromptPay QR');
+    } finally {
+      setDisabled($$('input, select, textarea, button', elements.topupForm), false);
+    }
+
     return;
   }
 
@@ -1018,10 +1113,12 @@ async function submitTopup(event) {
       slipUrl: uploadedSlip.url
     });
 
+    clearActivePromptPayQr();
     clearForm(elements.topupForm);
     await loadMemberData();
     renderAuthState();
     renderTopups();
+    syncTopupFormMode();
     notify('success', 'Slip verified successfully. Your wallet balance has been updated.');
     return;
     notify('success', 'ส่งแจ้งเติมเงินเรียบร้อย รอแอดมินตรวจสอบสลิป');
@@ -1127,6 +1224,61 @@ function bindAuthTabs() {
   });
 }
 
+function syncTopupFormMode() {
+  const selectedMethod = getSelectedTopupMethod();
+  const slipInput = $('#topup-slip');
+  const slipField = slipInput?.closest('.field');
+  const submitButton = elements.topupForm?.querySelector('button[type="submit"]');
+  const walletPanel = elements.walletBalance?.closest('.sub-panel');
+  const walletHelpText = walletPanel?.querySelector('.help-text');
+  const topupPanel = elements.topupForm?.closest('.sub-panel');
+  const topupHeading = topupPanel?.querySelector('h3');
+  let formHelpText = elements.topupForm?.querySelector('[data-topup-hint]');
+  const dynamicPromptPay = isDynamicQrMethod(selectedMethod);
+  const activeQr = getActivePromptPayQr();
+  const showSlipField = !dynamicPromptPay || Boolean(activeQr);
+
+  if (!formHelpText && submitButton) {
+    formHelpText = document.createElement('p');
+    formHelpText.className = 'help-text';
+    formHelpText.dataset.topupHint = 'true';
+    submitButton.before(formHelpText);
+  }
+
+  toggleHidden(slipField, !showSlipField);
+
+  if (slipInput) {
+    slipInput.required = showSlipField;
+    slipInput.disabled = !showSlipField;
+  }
+
+  if (submitButton) {
+    submitButton.textContent = dynamicPromptPay
+      ? activeQr
+        ? 'Verify PromptPay Slip'
+        : 'Generate PromptPay QR'
+      : 'Verify Slip Topup';
+  }
+
+  if (formHelpText) {
+    formHelpText.textContent = dynamicPromptPay
+      ? activeQr
+        ? 'Upload the payment slip for this PromptPay transfer to verify the topup and credit the wallet.'
+        : 'Generate a PromptPay QR for the exact amount, complete the transfer, and then upload the slip to verify the topup.'
+      : 'Transfer the exact amount, upload your slip, and the wallet will be credited automatically after verification.';
+  }
+
+  if (walletHelpText) {
+    walletHelpText.textContent = dynamicPromptPay
+      ? 'Use PromptPay QR for the exact topup amount, then upload the slip to complete verification.'
+      : 'Choose a configured payment channel, transfer the amount, and upload the slip for automatic wallet topup.';
+  }
+
+  if (topupHeading) {
+    topupHeading.textContent = dynamicPromptPay ? 'PromptPay QR Topup' : 'Slip Verification';
+  }
+}
+
 function prepareQrTopupForm() {
   if (!elements.topupMethod && elements.topupForm) {
     const methodField = elements.topupForm.querySelector('label[for="topup-method"]')?.closest('.field');
@@ -1137,52 +1289,15 @@ function prepareQrTopupForm() {
   }
 
   const methodField = elements.topupForm?.querySelector('label[for="topup-method"]')?.closest('.field');
-  const slipInput = $('#topup-slip');
-  const slipField = slipInput?.closest('.field');
-  const submitButton = elements.topupForm?.querySelector('button[type="submit"]');
-  const walletPanel = elements.walletBalance?.closest('.sub-panel');
-  const walletHelpText = walletPanel?.querySelector('.help-text');
-  const topupPanel = elements.topupForm?.closest('.sub-panel');
-  const topupHeading = topupPanel?.querySelector('h3');
-  let formHelpText = elements.topupForm?.querySelector('[data-topup-hint]');
 
   toggleHidden(methodField, false);
-  toggleHidden(slipField, false);
-  toggleHidden(elements.topupQrPanel, true);
-
-  if (slipInput) {
-    slipInput.required = true;
-    slipInput.disabled = false;
-  }
 
   if (elements.topupMethod) {
     elements.topupMethod.required = true;
   }
 
-  if (!formHelpText && submitButton) {
-    formHelpText = document.createElement('p');
-    formHelpText.className = 'help-text';
-    formHelpText.dataset.topupHint = 'true';
-    submitButton.before(formHelpText);
-  }
-
-  if (submitButton) {
-    submitButton.textContent = 'Verify Slip Topup';
-  }
-
-  if (formHelpText) {
-    formHelpText.textContent =
-      'Transfer the exact amount, upload your slip, and the wallet will be credited automatically after verification.';
-  }
-
-  if (walletHelpText) {
-    walletHelpText.textContent =
-      'Choose a configured payment channel, transfer the amount, and upload the slip for automatic wallet topup.';
-  }
-
-  if (topupHeading) {
-    topupHeading.textContent = 'Slip Verification';
-  }
+  syncTopupFormMode();
+  renderActiveTopup();
 }
 
 function bindEvents() {
@@ -1196,18 +1311,29 @@ function bindEvents() {
     state.searchTerm = normalizeText(event.target.value);
     renderProducts();
   });
+  elements.topupMethod?.addEventListener('change', () => {
+    clearActivePromptPayQr();
+    renderActiveTopup();
+  });
+  $('#topup-amount')?.addEventListener('input', () => {
+    if (!getActivePromptPayQr()) {
+      return;
+    }
+
+    clearActivePromptPayQr();
+    renderActiveTopup();
+  });
   elements.topupForm.addEventListener('submit', submitTopup);
   elements.topupQrRefreshBtn.addEventListener('click', () => {
-    const topupId = elements.topupQrRefreshBtn.dataset.topupId;
-    if (!topupId) {
+    if (!getActivePromptPayQr()) {
       notify('error', 'No active QR to refresh');
       return;
     }
 
-    refreshTopupStatus(topupId);
+    refreshTopupStatus(elements.topupQrRefreshBtn.dataset.topupId);
   });
   elements.topupQrCopyRefBtn.addEventListener('click', () => {
-    copyTextValue(elements.topupQrCopyRefBtn.dataset.topupRef, 'Copied payment reference', 'No payment reference found');
+    copyTextValue(elements.topupQrCopyRefBtn.dataset.topupRef, 'Copied PromptPay ID', 'No PromptPay ID found');
   });
   elements.profileForm.addEventListener('submit', submitProfile);
   elements.loginForm.addEventListener('submit', submitLogin);
@@ -1311,6 +1437,7 @@ async function bootstrap() {
   elements.heroTagline.textContent = APP_CONFIG.tagline;
   prepareQrTopupForm();
   renderPaymentMethods();
+  syncTopupFormMode();
   renderSupportChannels();
   renderCategoryFilters();
   renderTopups();

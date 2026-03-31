@@ -8,16 +8,19 @@ export const APP_CONFIG = {
   paymentMethods: [
     {
       id: 'promptpay',
-      label: 'PromptPay',
-      accountName: '',
-      accountValue: '',
+      label: 'PromptPay QR',
+      accountName: 'Dynamic QR',
+      accountValue: 'Generate QR from wallet form',
       copyValue: '',
       copyLabel: 'คัดลอกเลขพร้อมเพย์',
-      bankName: '',
-      description: 'ชำระผ่านพร้อมเพย์',
-      instructions: '',
+      bankName: 'PromptPay',
+      description: 'สร้าง QR พร้อมเพย์ตามยอดที่กรอกในฟอร์มเติมเงิน',
+      instructions: 'กดสร้าง QR, ชำระในแอปธนาคาร, แล้วอัปโหลดสลิปเพื่อยืนยันการเติมเงิน',
       qrImageUrl: '',
-      barcodeImageUrl: ''
+      barcodeImageUrl: '',
+      dynamicQr: true,
+      // Optional client-side fallback if PROMPTPAY_ID is not set on the server.
+      promptPayId: ''
     },
     {
       id: 'bank',
